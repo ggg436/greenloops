@@ -10,9 +10,11 @@ import {
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const Header = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
     <header className="w-full px-8 py-6 bg-white">
@@ -161,9 +163,9 @@ const Header = () => {
         <div className="flex items-center space-x-6">
           <Button 
             className="bg-zinc-900 hover:bg-zinc-800 text-white px-8 py-3 rounded-lg font-bold text-base shadow-lg"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => user ? navigate('/dashboard') : navigate('/login')}
           >
-            Dashboard
+            {user ? 'Dashboard' : 'Login'}
           </Button>
         </div>
       </div>

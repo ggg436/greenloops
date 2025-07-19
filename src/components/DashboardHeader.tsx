@@ -1,13 +1,32 @@
 
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Search, ChevronDown, Bell } from 'lucide-react';
+import { Search, ChevronDown, Bell, User as UserIcon } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuthContext } from '@/lib/AuthProvider';
 
 const DashboardHeader: React.FC = () => {
   const location = useLocation();
+  const { user } = useAuthContext();
+  
+  // Get user's display name or email
+  const displayName = user?.displayName || user?.email?.split('@')[0] || 'Guest';
+  
+  // Get user's initials for fallback avatar
+  const getInitials = () => {
+    if (!user) return 'G';
+    if (user.displayName) {
+      return user.displayName
+        .split(' ')
+        .map(name => name[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+    }
+    return user.email ? user.email[0].toUpperCase() : 'U';
+  };
   
   const getPageTitle = () => {
     const path = location.pathname;
@@ -56,11 +75,16 @@ const DashboardHeader: React.FC = () => {
 
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9">
-            <AvatarImage src="/placeholder.svg" />
-            <AvatarFallback>MQ</AvatarFallback>
+            {user?.photoURL ? (
+              <AvatarImage src={user.photoURL} referrerPolicy="no-referrer" />
+            ) : (
+              <AvatarFallback className="bg-blue-500 text-white">
+                {getInitials()}
+              </AvatarFallback>
+            )}
           </Avatar>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Musfiq</span>
+            <span className="text-sm font-medium">{displayName}</span>
             <ChevronDown size={12} className="text-gray-500" />
           </div>
         </div>

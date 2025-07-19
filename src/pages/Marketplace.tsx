@@ -1,10 +1,74 @@
 
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, Heart, Package, Star, MapPin, Filter, LayoutGrid, List, ShoppingCart } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Search, ShoppingBag, Heart, Package, Star, MapPin, Filter, LayoutGrid, List, ShoppingCart, ChevronDown, User, Loader2 } from 'lucide-react';
+import { useAuthContext } from '@/lib/AuthProvider';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Product, getProducts } from '@/lib/products';
+import { toast } from 'sonner';
 
 const Marketplace = () => {
   const navigate = useNavigate();
+  const { user } = useAuthContext();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  // Get user's display name or email
+  const displayName = user?.displayName || user?.email?.split('@')[0] || 'Guest';
+  
+  // Get user's initials for fallback avatar
+  const getInitials = () => {
+    if (!user) return 'G';
+    if (user.displayName) {
+      return user.displayName
+        .split(' ')
+        .map(name => name[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+    }
+    return user.email ? user.email[0].toUpperCase() : 'U';
+  };
+
+  // Fetch products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const result = await getProducts(undefined, 12, selectedCategory || undefined);
+        setProducts(result.products);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        toast.error('Failed to load products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [selectedCategory]);
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Handle search submit
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // For now, we'll just filter the products client-side
+    // In a real app, you might want to use a search service like Algolia
+    if (searchTerm.trim()) {
+      navigate(`/dashboard/marketplace?search=${encodeURIComponent(searchTerm)}`);
+    }
+  };
+
+  // Handle category selection
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category === selectedCategory ? '' : category);
+  };
 
   const handleProductClick = (productId: string) => {
     navigate(`/dashboard/marketplace/${productId}`);
@@ -25,14 +89,16 @@ const Marketplace = () => {
 
             {/* Search bar */}
             <div className="flex-1 max-w-md mx-8">
-              <div className="relative">
+              <form onSubmit={handleSearchSubmit} className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500" size={20} />
                 <input
                   type="text"
-                  placeholder="DJI phantom"
+                  placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
                   className="w-full pl-12 pr-4 py-3 text-sm bg-gray-50 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                 />
-              </div>
+              </form>
             </div>
 
             {/* Action buttons */}
@@ -50,9 +116,32 @@ const Marketplace = () => {
                 <span>Cart</span>
                 <span className="absolute -top-1 -right-1 bg-red-400 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
               </button>
-              <button className="px-4 py-2 border border-gray-200 rounded-md text-sm text-gray-800">
-                Sign In
-              </button>
+              
+              {user ? (
+                // Show user profile when logged in
+                <div className="flex items-center gap-3 ml-2">
+                  <Avatar className="h-9 w-9">
+                    {user?.photoURL ? (
+                      <AvatarImage src={user.photoURL} referrerPolicy="no-referrer" />
+                    ) : (
+                      <AvatarFallback className="bg-blue-500 text-white">
+                        {getInitials()}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">{displayName}</span>
+                    <ChevronDown size={12} className="text-gray-500" />
+                  </div>
+                </div>
+              ) : (
+                // Show sign in button when not logged in
+                <Link to="/login">
+                  <button className="px-4 py-2 border border-gray-200 rounded-md text-sm text-gray-800 hover:bg-gray-50">
+                    Sign In
+                  </button>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -79,7 +168,13 @@ const Marketplace = () => {
               <button className="text-sm text-gray-800 hover:text-blue-500">Toys & Games</button>
             </nav>
 
-            <button className="ml-auto text-sm text-gray-800 hover:text-blue-500">
+            <button 
+              onClick={() => user ? navigate('/dashboard/marketplace/add-product') : navigate('/login')}
+              className="text-sm bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors"
+            >
+              Add Product
+            </button>
+            <button className="ml-4 text-sm text-gray-800 hover:text-blue-500">
               Become a seller
             </button>
           </div>
@@ -91,8 +186,22 @@ const Marketplace = () => {
         {/* Results header */}
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-semibold">
-            <span className="text-gray-800">Found 376 results for </span>
-            <span className="text-blue-500">dji phantom</span>
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="animate-spin h-5 w-5 text-blue-500" />
+                <span className="text-gray-800">Loading products...</span>
+              </div>
+            ) : (
+              <>
+                <span className="text-gray-800">
+                  {products.length > 0 
+                    ? `Found ${products.length} products` 
+                    : 'No products found'}
+                  {selectedCategory ? ` in ${selectedCategory}` : ''}
+                  {searchTerm ? ` for "${searchTerm}"` : ''}
+                </span>
+              </>
+            )}
           </h2>
 
           <div className="flex items-center gap-4">
@@ -188,315 +297,91 @@ const Marketplace = () => {
 
           {/* Product grid */}
           <div className="flex-1">
-            <div className="grid grid-cols-3 gap-6">
-              {/* Product card 1 */}
-              <div 
-                className="group bg-white border border-gray-200 rounded-3xl p-6 relative flex flex-col items-center text-center cursor-pointer hover:shadow-lg transition-all duration-300"
-                onClick={() => handleProductClick('dji-phantom-2-vision')}
-              >
-                <div className="absolute top-2 right-2 flex flex-col gap-2 z-20">
-                  <button className="p-2 hover:bg-gray-100 rounded">
-                    <Heart className="w-4 h-4 text-gray-400" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-100 rounded">
-                    <Package className="w-4 h-4 text-gray-400" />
-                  </button>
-                </div>
-                
-                {/* Hover overlay with buttons */}
-                <div className="absolute inset-0 bg-black/70 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
-                  <div className="flex flex-col gap-3">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Add to cart logic
-                      }}
-                      className="flex items-center gap-2 bg-white text-gray-800 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      Add to Cart
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Buy now logic
-                      }}
-                      className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
-                    >
-                      Buy Now
-                    </button>
-                  </div>
-                </div>
-
-                <img src="https://placehold.co/250x250" alt="Product" className="w-64 h-64 object-cover mb-4" />
-                <h3 className="text-sm text-gray-800 mb-2">DJI Phantom 2 Vision+</h3>
-                <p className="text-lg font-semibold text-gray-800 mb-2">$599</p>
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  {[1, 2, 3].map((star) => (
-                    <Star key={star} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  ))}
-                  <Star className="w-3 h-3 fill-yellow-400/50 text-yellow-400" />
-                  <Star className="w-3 h-3 fill-gray-300 text-gray-300" />
-                </div>
-                <span className="text-xs text-gray-500">243</span>
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
               </div>
-
-              {/* Product card 2 */}
-              <div 
-                className="group bg-white border border-gray-200 rounded-3xl p-6 relative flex flex-col items-center text-center cursor-pointer hover:shadow-lg transition-all duration-300"
-                onClick={() => handleProductClick('dji-phantom-4-multispectral')}
-              >
-                <div className="absolute top-2 right-2 flex flex-col gap-2 z-20">
-                  <button className="p-2 hover:bg-gray-100 rounded">
-                    <Heart className="w-4 h-4 text-gray-400" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-100 rounded">
-                    <Package className="w-4 h-4 text-gray-400" />
-                  </button>
-                </div>
-                
-                {/* Hover overlay with buttons */}
-                <div className="absolute inset-0 bg-black/70 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
-                  <div className="flex flex-col gap-3">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Add to cart logic
-                      }}
-                      className="flex items-center gap-2 bg-white text-gray-800 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      Add to Cart
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Buy now logic
-                      }}
-                      className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
-                    >
-                      Buy Now
-                    </button>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products.length === 0 ? (
+                  <div className="col-span-3 flex flex-col items-center justify-center h-64">
+                    <Package className="h-16 w-16 text-gray-300 mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-500">No products found</h3>
+                    <p className="text-gray-400 mt-2">Try adjusting your search or filters</p>
                   </div>
-                </div>
+                ) : (
+                  products.map((product) => (
+                    <div 
+                      key={product.id}
+                      className="group bg-white border border-gray-200 rounded-3xl p-6 relative flex flex-col items-center text-center cursor-pointer hover:shadow-lg transition-all duration-300"
+                      onClick={() => handleProductClick(product.id)}
+                    >
+                      <div className="absolute top-2 right-2 flex flex-col gap-2 z-20">
+                        <button className="p-2 hover:bg-gray-100 rounded">
+                          <Heart className="w-4 h-4 text-gray-400" />
+                        </button>
+                        <button className="p-2 hover:bg-gray-100 rounded">
+                          <Package className="w-4 h-4 text-gray-400" />
+                        </button>
+                      </div>
+                      
+                      {/* Hover overlay with buttons */}
+                      <div className="absolute inset-0 bg-black/70 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
+                        <div className="flex flex-col gap-3">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Add to cart logic
+                              toast.success(`${product.title} added to cart!`);
+                            }}
+                            className="flex items-center gap-2 bg-white text-gray-800 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+                          >
+                            <ShoppingCart className="w-4 h-4" />
+                            Add to Cart
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Buy now logic
+                              navigate(`/dashboard/marketplace/${product.id}?buy=true`);
+                            }}
+                            className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                          >
+                            Buy Now
+                          </button>
+                        </div>
+                      </div>
 
-                <img src="https://placehold.co/250x250" alt="Product" className="w-64 h-64 object-cover mb-4" />
-                <h3 className="text-sm text-gray-800 mb-2">DJI Phantom 4 Multispectral</h3>
-                <p className="text-lg font-semibold text-gray-800 mb-2">$1,449</p>
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <span className="text-xs text-gray-500">98</span>
+                      <img 
+                        src={product.coverImage || 'https://placehold.co/250x250?text=No+Image'} 
+                        alt={product.title} 
+                        className="w-64 h-64 object-cover mb-4 rounded-lg"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://placehold.co/250x250?text=No+Image';
+                        }}
+                      />
+                      <h3 className="text-sm text-gray-800 mb-2 line-clamp-2 h-10">{product.title}</h3>
+                      <p className="text-lg font-semibold text-gray-800 mb-2">${product.price.toFixed(2)}</p>
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        {Array.from({ length: 5 }).map((_, idx) => (
+                          <Star 
+                            key={idx} 
+                            className={`w-3 h-3 ${
+                              idx < Math.floor(product.rating)
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : idx < product.rating 
+                                  ? 'fill-yellow-400/50 text-yellow-400'
+                                  : 'fill-gray-300 text-gray-300'
+                            }`} 
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-500">{product.reviews || 0}</span>
+                    </div>
+                  ))
+                )}
               </div>
-
-              {/* Product card 3 */}
-              <div 
-                className="group bg-white border border-gray-200 rounded-3xl p-6 relative flex flex-col items-center text-center cursor-pointer hover:shadow-lg transition-all duration-300"
-                onClick={() => handleProductClick('dji-phantom-4-pro')}
-              >
-                <div className="absolute top-2 right-2 flex flex-col gap-2 z-20">
-                  <button className="p-2 hover:bg-gray-100 rounded">
-                    <Heart className="w-4 h-4 text-gray-400" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-100 rounded">
-                    <Package className="w-4 h-4 text-gray-400" />
-                  </button>
-                </div>
-                
-                {/* Hover overlay with buttons */}
-                <div className="absolute inset-0 bg-black/70 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
-                  <div className="flex flex-col gap-3">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Add to cart logic
-                      }}
-                      className="flex items-center gap-2 bg-white text-gray-800 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      Add to Cart
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Buy now logic
-                      }}
-                      className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
-                    >
-                      Buy Now
-                    </button>
-                  </div>
-                </div>
-
-                <img src="https://placehold.co/250x250" alt="Product" className="w-64 h-64 object-cover mb-4" />
-                <h3 className="text-sm text-gray-800 mb-2">DJI Phantom 4 PRO</h3>
-                <p className="text-lg font-semibold text-gray-800 mb-2">$739</p>
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  {[1, 2].map((star) => (
-                    <Star key={star} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  ))}
-                  {[3, 4, 5].map((star) => (
-                    <Star key={star} className="w-3 h-3 fill-gray-300 text-gray-300" />
-                  ))}
-                </div>
-                <span className="text-xs text-gray-500">1,002</span>
-              </div>
-
-              {/* Second row products */}
-              <div 
-                className="group bg-white border border-gray-200 rounded-3xl p-6 relative flex flex-col items-center text-center cursor-pointer hover:shadow-lg transition-all duration-300"
-                onClick={() => handleProductClick('dji-intelligent-flight-battery')}
-              >
-                <div className="absolute top-2 right-2 flex flex-col gap-2 z-20">
-                  <button className="p-2 hover:bg-gray-100 rounded">
-                    <Heart className="w-4 h-4 text-gray-400" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-100 rounded">
-                    <Package className="w-4 h-4 text-gray-400" />
-                  </button>
-                </div>
-                
-                {/* Hover overlay with buttons */}
-                <div className="absolute inset-0 bg-black/70 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
-                  <div className="flex flex-col gap-3">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Add to cart logic
-                      }}
-                      className="flex items-center gap-2 bg-white text-gray-800 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      Add to Cart
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Buy now logic
-                      }}
-                      className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
-                    >
-                      Buy Now
-                    </button>
-                  </div>
-                </div>
-
-                <img src="https://placehold.co/250x250" alt="Product" className="w-64 h-64 object-cover mb-4" />
-                <h3 className="text-sm text-gray-800 mb-2">4 Series — Intelligent Flight Battery (5…</h3>
-                <p className="text-lg font-semibold text-gray-800 mb-2">$186</p>
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  {[1, 2, 3].map((star) => (
-                    <Star key={star} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  ))}
-                  <Star className="w-3 h-3 fill-yellow-400/50 text-yellow-400" />
-                  <Star className="w-3 h-3 fill-gray-300 text-gray-300" />
-                </div>
-                <span className="text-xs text-gray-500">243</span>
-              </div>
-
-              <div 
-                className="group bg-white border border-gray-200 rounded-3xl p-6 relative flex flex-col items-center text-center cursor-pointer hover:shadow-lg transition-all duration-300"
-                onClick={() => handleProductClick('dji-phantom-3-battery')}
-              >
-                <div className="absolute top-2 right-2 flex flex-col gap-2 z-20">
-                  <button className="p-2 hover:bg-gray-100 rounded">
-                    <Heart className="w-4 h-4 text-gray-400" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-100 rounded">
-                    <Package className="w-4 h-4 text-gray-400" />
-                  </button>
-                </div>
-                
-                {/* Hover overlay with buttons */}
-                <div className="absolute inset-0 bg-black/70 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
-                  <div className="flex flex-col gap-3">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Add to cart logic
-                      }}
-                      className="flex items-center gap-2 bg-white text-gray-800 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      Add to Cart
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Buy now logic
-                      }}
-                      className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
-                    >
-                      Buy Now
-                    </button>
-                  </div>
-                </div>
-
-                <img src="https://placehold.co/250x250" alt="Product" className="w-64 h-64 object-cover mb-4" />
-                <h3 className="text-sm text-gray-800 mb-2">DJI Phantom 3 — Intelligent Flight Bat…</h3>
-                <p className="text-lg font-semibold text-gray-800 mb-2">$98</p>
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <span className="text-xs text-gray-500">98</span>
-              </div>
-
-              <div 
-                className="group bg-white border border-gray-200 rounded-3xl p-6 relative flex flex-col items-center text-center cursor-pointer hover:shadow-lg transition-all duration-300"
-                onClick={() => handleProductClick('dji-phantom-4-pro-v2')}
-              >
-                <div className="absolute top-2 right-2 flex flex-col gap-2 z-20">
-                  <button className="p-2 hover:bg-gray-100 rounded">
-                    <Heart className="w-4 h-4 text-gray-400" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-100 rounded">
-                    <Package className="w-4 h-4 text-gray-400" />
-                  </button>
-                </div>
-                
-                {/* Hover overlay with buttons */}
-                <div className="absolute inset-0 bg-black/70 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
-                  <div className="flex flex-col gap-3">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Add to cart logic
-                      }}
-                      className="flex items-center gap-2 bg-white text-gray-800 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      Add to Cart
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Buy now logic
-                      }}
-                      className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
-                    >
-                      Buy Now
-                    </button>
-                  </div>
-                </div>
-
-                <img src="https://placehold.co/250x250" alt="Product" className="w-64 h-64 object-cover mb-4" />
-                <h3 className="text-sm text-gray-800 mb-2">DJI Phantom 4 PRO</h3>
-                <p className="text-lg font-semibold text-gray-800 mb-2">$739</p>
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  {[1, 2].map((star) => (
-                    <Star key={star} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  ))}
-                  {[3, 4, 5].map((star) => (
-                    <Star key={star} className="w-3 h-3 fill-gray-300 text-gray-300" />
-                  ))}
-                </div>
-                <span className="text-xs text-gray-500">1,002</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

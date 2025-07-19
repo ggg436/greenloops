@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -17,9 +18,15 @@ import {
   UserPlus,
   TrendingUp,
   Hash,
-  X
+  X,
+  Loader2,
+  Image as ImageIcon
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
+import { useAuthContext } from '@/lib/AuthProvider';
+import { Post as PostType, getPosts, createPost, toggleLike, addComment } from '@/lib/posts';
+import { formatDistanceToNow } from 'date-fns';
+import { PostComments } from '@/components/PostComments';
 
 interface User {
   id: string;
@@ -27,22 +34,6 @@ interface User {
   avatar: string;
   handle: string;
   isFollowing?: boolean;
-}
-
-interface Post {
-  id: string;
-  author: {
-    name: string;
-    avatar: string;
-    handle: string;
-    timestamp: string;
-  };
-  content: string;
-  likes: number;
-  comments: number;
-  shares: number;
-  isLiked: boolean;
-  hashtags?: string[];
 }
 
 const mockFavorites: User[] = [
@@ -74,59 +65,84 @@ const mockRecommendations: User[] = [
   { id: '17', name: 'Ismail bin Mail', avatar: '/placeholder.svg', handle: '@ismail_mail', isFollowing: false }
 ];
 
-const mockPosts: Post[] = [
-  {
-    id: '1',
-    author: {
-      name: 'Naomi Yashida',
-      avatar: '/placeholder.svg',
-      handle: '@naomi_yashida',
-      timestamp: '2 mins ago'
-    },
-    content: 'More effort is wasted doing things that don\'t matter than is wasted doing things inefficiently. And if that is the case, elimination is a more useful skill than optimization. I am reminded of the famous Peter Drucker quote, "There is nothing so useless as doing efficiently that which should not be done at all."',
-    likes: 4124,
-    comments: 31,
-    shares: 0,
-    isLiked: false,
-    hashtags: ['Tips', 'ProductivityHacks', 'SelfDev']
-  },
-  {
-    id: '2',
-    author: {
-      name: 'Mohammed Benar',
-      avatar: '/placeholder.svg',
-      handle: '@mohammed_benar',
-      timestamp: '1 hour ago'
-    },
-    content: 'Beautiful landscape photography from my recent trip. The colors of nature never cease to amaze me.',
-    likes: 892,
-    comments: 45,
-    shares: 12,
-    isLiked: true,
-    hashtags: ['Photography', 'Nature', 'Landscape']
-  }
-];
-
 const topicTags = ['Design', 'User Experience', 'UI', 'Photography', 'Viral', 'Illustration', 'Print Design', 'Productivity'];
 
 const Feed = () => {
-  const [posts, setPosts] = useState<Post[]>(mockPosts);
+  const [posts, setPosts] = useState<PostType[]>([]);
   const [newPost, setNewPost] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuthContext();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const handleLike = (postId: string) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId
-          ? {
-              ...post,
-              isLiked: !post.isLiked,
-              likes: post.isLiked ? post.likes - 1 : post.likes + 1
-            }
-          : post
-      )
-    );
+  // Load posts from Firestore
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        setIsLoading(true);
+        const postsData = await getPosts();
+        setPosts(postsData);
+      } catch (error: any) {
+        console.error("Error loading posts:", error);
+        toast({
+          title: "Error loading posts",
+          description: error.message,
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPosts();
+  }, [toast]);
+
+  const handleLike = async (postId: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to like posts",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      // Optimistic update
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === postId
+            ? {
+                ...post,
+                isLiked: !post.likedBy.includes(user.uid),
+                likes: post.likedBy.includes(user.uid) ? post.likes - 1 : post.likes + 1,
+                likedBy: post.likedBy.includes(user.uid) 
+                  ? post.likedBy.filter(id => id !== user.uid)
+                  : [...post.likedBy, user.uid]
+              }
+            : post
+        )
+      );
+      
+      // Update in Firestore
+      await toggleLike(postId);
+    } catch (error: any) {
+      console.error("Error liking post:", error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      
+      // Reload posts to revert if there was an error
+      const postsData = await getPosts();
+      setPosts(postsData);
+    }
   };
 
   const handleFollow = (userId: string) => {
@@ -136,30 +152,136 @@ const Feed = () => {
     });
   };
 
-  const handleCreatePost = () => {
-    if (!newPost.trim()) return;
+  const handleImageClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
-    const post: Post = {
-      id: Date.now().toString(),
-      author: {
-        name: 'You',
-        avatar: '/placeholder.svg',
-        handle: '@you',
-        timestamp: 'Just now'
-      },
-      content: newPost,
-      likes: 0,
-      comments: 0,
-      shares: 0,
-      isLiked: false
-    };
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Image must be smaller than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Only image files are allowed",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setSelectedImage(file);
+      setImagePreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
-    setPosts([post, ...posts]);
-    setNewPost('');
-    toast({
-      title: "Post created!",
-      description: "Your post has been shared with the community.",
-    });
+  const removeSelectedImage = () => {
+    setSelectedImage(null);
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+      setImagePreviewUrl(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCreatePost = async () => {
+    if (!newPost.trim() && !selectedImage) {
+      toast({
+        title: "Cannot create empty post",
+        description: "Please add some text or an image to your post",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to create posts",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Create post data
+      const postData = {
+        authorName: user.displayName || 'Anonymous',
+        authorHandle: `@${user.displayName?.toLowerCase().replace(/\s/g, '') || 'anonymous'}`,
+        authorAvatar: user.photoURL || '/placeholder.svg',
+        content: newPost,
+      };
+      
+      console.log('Creating post with data:', postData);
+      console.log('Image attached:', selectedImage ? 'Yes' : 'No');
+      
+      // Try to create the post
+      const postId = await createPost(postData, selectedImage || undefined);
+      console.log('Post created successfully with ID:', postId);
+      
+      // Refetch posts to include the new one
+      const postsData = await getPosts();
+      setPosts(postsData);
+      
+      setNewPost('');
+      removeSelectedImage();
+      toast({
+        title: "Post created!",
+        description: "Your post has been shared with the community.",
+      });
+    } catch (error: any) {
+      console.error("Error creating post:", error);
+      
+      // More detailed error information
+      if (error.code) {
+        console.error("Error code:", error.code);
+      }
+      
+      let errorMessage = 'Failed to create post';
+      
+      if (error.message.includes('storage/unauthorized')) {
+        errorMessage = 'Image upload failed: Storage permission denied. Check Firebase rules.';
+      } else if (error.message.includes('firestore/permission-denied')) {
+        errorMessage = 'Database access denied. Check Firestore rules.';
+      } else if (error.message.includes('auth/')) {
+        errorMessage = 'Authentication error: Please log in again.';
+      } else if (selectedImage && error.message.includes('storage/')) {
+        errorMessage = `Image upload error: ${error.message}`;
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Format the timestamp for display
+  const formatTimestamp = (timestamp: Date) => {
+    try {
+      return formatDistanceToNow(timestamp, { addSuffix: true });
+    } catch (e) {
+      return 'just now';
+    }
   };
 
   return (
@@ -239,23 +361,69 @@ const Feed = () => {
             <CardContent className="p-6">
               <div className="flex space-x-4">
                 <Avatar className="w-12 h-12">
-                  <AvatarImage src="/placeholder.svg" />
-                  <AvatarFallback>YU</AvatarFallback>
+                  <AvatarImage src={user?.photoURL || "/placeholder.svg"} />
+                  <AvatarFallback>{user?.displayName?.[0] || "U"}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <Textarea
-                    placeholder="Write your comment..."
+                    placeholder="Write your post..."
                     value={newPost}
                     onChange={(e) => setNewPost(e.target.value)}
                     className="min-h-[80px] resize-none border-0 shadow-none focus-visible:ring-0 text-lg placeholder:text-gray-400"
                   />
-                  <div className="flex justify-end mt-4">
+                  
+                  {/* Image Preview */}
+                  {imagePreviewUrl && (
+                    <div className="mt-3 relative">
+                      <img 
+                        src={imagePreviewUrl} 
+                        alt="Preview" 
+                        className="max-h-64 rounded-lg object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeSelectedImage}
+                        className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1 hover:bg-opacity-70 transition-opacity"
+                      >
+                        <X className="h-4 w-4 text-white" />
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between items-center mt-4">
+                    {/* Image Upload Button */}
+                    <div>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageChange}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={handleImageClick}
+                        className="rounded-full hover:bg-gray-100"
+                      >
+                        <ImageIcon className="h-5 w-5 text-gray-500" />
+                      </Button>
+                    </div>
+                    
+                    {/* Post Button */}
                     <Button 
                       onClick={handleCreatePost} 
-                      disabled={!newPost.trim()}
+                      disabled={(!newPost.trim() && !selectedImage) || isSubmitting || !user}
                       className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6"
                     >
-                      Create Post
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Posting...
+                        </>
+                      ) : (
+                        'Create Post'
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -264,121 +432,88 @@ const Feed = () => {
           </Card>
 
           {/* Posts */}
-          <div className="space-y-6">
-            {posts.map((post) => (
-              <Card key={post.id} className="rounded-3xl border-gray-200">
-                <CardContent className="p-6">
-                  {/* Post Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex space-x-3">
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={post.author.avatar} />
-                        <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-semibold text-gray-900">{post.author.name}</h3>
-                          <span className="text-sm text-gray-500">{post.author.handle}</span>
-                          <span className="text-sm text-gray-500">•</span>
-                          <span className="text-sm text-gray-500">{post.author.timestamp}</span>
+          {isLoading ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-gray-500">No posts found</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {posts.map((post) => (
+                <Card key={post.id} className="rounded-3xl border-gray-200 overflow-hidden">
+                  <CardHeader className="bg-white p-6">
+                    <div className="flex justify-between items-start">
+                      <div className="flex space-x-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={post.authorAvatar || "/placeholder.svg"} />
+                          <AvatarFallback>{post.authorName?.[0] || "?"}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{post.authorName}</h3>
+                          <p className="text-sm text-gray-500">
+                            {post.authorHandle} • {formatTimestamp(post.createdAt as Date)}
+                          </p>
                         </div>
                       </div>
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="rounded-full hover:bg-gray-100"
+                          onClick={() => handleFollow(post.authorId)}
+                        >
+                          <MoreHorizontal className="h-5 w-5 text-gray-500" />
+                        </Button>
+                      </div>
                     </div>
-                    <Button variant="ghost" size="sm" className="rounded-full">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  {/* Post Content */}
-                  <div className="mb-4">
-                    <p className="text-gray-900 leading-relaxed mb-4">{post.content}</p>
+                  </CardHeader>
+                  <CardContent className="p-6 pt-0">
+                    <p className="text-gray-800 mb-4">{post.content}</p>
                     
-                    {post.hashtags && (
-                      <div className="flex flex-wrap gap-2">
-                        {post.hashtags.map((hashtag) => (
-                          <span key={hashtag} className="text-blue-600 hover:text-blue-700 cursor-pointer">
-                            #{hashtag}
-                          </span>
-                        ))}
+                    {/* Display post image if available */}
+                    {post.imageUrl && (
+                      <div className="mb-4">
+                        <img 
+                          src={post.imageUrl} 
+                          alt="Post attachment" 
+                          className="rounded-lg max-h-96 w-full object-cover"
+                        />
                       </div>
                     )}
-                  </div>
-
-                  {/* Post Actions */}
-                  <div className="flex items-center justify-between py-3 border-t border-gray-100">
-                    <div className="flex items-center space-x-6">
-                      <button 
-                        onClick={() => handleLike(post.id)}
-                        className="flex items-center space-x-2 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors"
-                      >
-                        <Heart 
-                          className={`w-5 h-5 ${post.isLiked ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} 
-                        />
-                        <span className={`text-sm font-medium ${post.isLiked ? 'text-red-500' : 'text-gray-700'}`}>
-                          {post.likes.toLocaleString()}
-                        </span>
-                      </button>
-                      
-                      <button className="flex items-center space-x-2 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors">
-                        <MessageCircle className="w-5 h-5 text-gray-500" />
-                        <span className="text-sm font-medium text-gray-700">{post.comments}</span>
-                      </button>
-                      
-                      <button className="flex items-center space-x-2 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors">
-                        <Share2 className="w-5 h-5 text-gray-500" />
-                        <span className="text-sm font-medium text-gray-700">{post.shares}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Comments Preview */}
-                  <div className="mt-4 space-y-3">
-                    <div className="flex space-x-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src="/placeholder.svg" />
-                        <AvatarFallback>IM</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className="text-sm font-medium text-gray-900">Ismail bin Mail</span>
-                          <span className="text-sm text-gray-500">21 mins</span>
-                        </div>
-                        <p className="text-sm text-gray-700">I am reminded of the famous Peter Drucker quote, "There is nothing so useless as doing efficiently that which should not be done at all."</p>
-                        <div className="flex items-center space-x-4 mt-2">
-                          <button className="text-xs text-gray-500 hover:text-gray-700">Reply</button>
-                          <Heart className="w-3 h-3 text-gray-400" />
-                          <span className="text-xs text-gray-500">12</span>
-                        </div>
+                    
+                    <div className="flex space-x-6">
+                      <div className="flex space-x-2 items-center">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className={`rounded-full ${post.likedBy?.includes(user?.uid || '') ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 hover:bg-red-50`}
+                          onClick={() => handleLike(post.id)}
+                        >
+                          <Heart className="h-5 w-5" fill={post.likedBy?.includes(user?.uid || '') ? 'currentColor' : 'none'} />
+                        </Button>
+                        <span className="text-sm text-gray-500">{post.likes}</span>
+                      </div>
+                      <div className="flex space-x-2 items-center">
+                        <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-blue-500 hover:bg-blue-50">
+                          <MessageCircle className="h-5 w-5" />
+                        </Button>
+                        <span className="text-sm text-gray-500">{post.comments}</span>
+                      </div>
+                      <div className="flex space-x-2 items-center">
+                        <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-green-500 hover:bg-green-50">
+                          <Share2 className="h-5 w-5" />
+                        </Button>
+                        <span className="text-sm text-gray-500">{post.shares}</span>
                       </div>
                     </div>
-
-                    <div className="flex space-x-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src="/placeholder.svg" />
-                        <AvatarFallback>Y</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className="text-sm font-medium text-gray-900">You</span>
-                          <span className="text-sm text-gray-500">Just now</span>
-                        </div>
-                        <p className="text-sm text-gray-700">Love it bro!</p>
-                        <div className="flex items-center space-x-4 mt-2">
-                          <button className="text-xs text-gray-500 hover:text-gray-700">Reply</button>
-                          <Heart className="w-3 h-3 text-gray-400" />
-                          <span className="text-xs text-gray-500">0</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button className="text-blue-600 text-sm hover:text-blue-700 font-medium">
-                      View All Comments
-                    </button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right Sidebar */}
@@ -388,13 +523,13 @@ const Feed = () => {
             <CardContent className="p-6 text-center">
               <div className="relative mb-4">
                 <Avatar className="w-20 h-20 mx-auto mb-4">
-                  <AvatarImage src="/placeholder.svg" />
-                  <AvatarFallback>SJ</AvatarFallback>
+                  <AvatarImage src={user?.photoURL || "/placeholder.svg"} />
+                  <AvatarFallback>{user?.displayName?.[0] || "U"}</AvatarFallback>
                 </Avatar>
                 <div className="absolute top-0 right-0 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
               </div>
-              <h3 className="font-semibold text-gray-900 mb-1">Salahudin Jafar</h3>
-              <p className="text-sm text-gray-500 mb-4">@salahudin</p>
+              <h3 className="font-semibold text-gray-900 mb-1">{user?.displayName || "Anonymous"}</h3>
+              <p className="text-sm text-gray-500 mb-4">@{user?.displayName?.toLowerCase().replace(/\s/g, '') || "anonymous"}</p>
               <div className="text-sm text-blue-600 mb-4">👑 You had 20% visitors this week</div>
               
               <div className="flex justify-center space-x-8 mb-4">
