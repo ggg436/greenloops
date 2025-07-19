@@ -15,19 +15,20 @@ import {
   updateDoc,
   deleteDoc
 } from 'firebase/firestore';
-import { db, auth, storage } from './firebase';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { db, auth } from './firebase';
+import { fileToBase64 } from './storage';
 
 export interface Product {
   id: string;
   title: string;
   description: string;
   price: number;
+  originalPrice?: number;  // Optional original price for discount calculation
   category: string;
   condition: string;
   quantity: number;
   features: string[];
-  specifications: string;
+  specifications: string | Record<string, string>;  // Allow for both string and object format
   images: string[];
   coverImage: string;
   sellerId: string;
@@ -39,20 +40,25 @@ export interface Product {
   reviews: number;
 }
 
-// Upload multiple product images
-export const uploadProductImages = async (files: File[]): Promise<string[]> => {
+// Convert product images to base64
+export const convertImagesToBase64 = async (files: File[]): Promise<string[]> => {
   if (!auth.currentUser) throw new Error("User not authenticated");
   
   try {
-    const uploadPromises = files.map(async file => {
-      const storageRef = ref(storage, `products/${auth.currentUser!.uid}/${Date.now()}-${file.name}`);
-      const snapshot = await uploadBytes(storageRef, file);
-      return getDownloadURL(snapshot.ref);
+    console.log(`Converting ${files.length} images to base64`);
+    const convertPromises = files.map(async (file) => {
+      // Check file size - limit to 1MB
+      if (file.size > 1 * 1024 * 1024) {
+        throw new Error(`File ${file.name} is too large (max 1MB)`);
+      }
+      return fileToBase64(file);
     });
     
-    return await Promise.all(uploadPromises);
+    const base64Images = await Promise.all(convertPromises);
+    console.log('All images converted to base64 successfully');
+    return base64Images;
   } catch (error) {
-    console.error('Error uploading images:', error);
+    console.error('Error converting images to base64:', error);
     throw error;
   }
 };
@@ -239,23 +245,6 @@ export const deleteProduct = async (productId: string): Promise<void> => {
     // Verify owner
     if (product.sellerId !== auth.currentUser.uid) {
       throw new Error("You don't have permission to delete this product");
-    }
-    
-    // Delete product images from storage
-    if (product.images && product.images.length > 0) {
-      for (const imageUrl of product.images) {
-        // Extract the path from the URL
-        const path = imageUrl.split('firebase.googleapis.com/v0/b/')[1].split('?alt=')[0];
-        const decodedPath = decodeURIComponent(path).replace(/^\/+/, '');
-        const imageRef = ref(storage, decodedPath);
-        
-        try {
-          await deleteObject(imageRef);
-        } catch (imgError) {
-          console.error('Error deleting image:', imgError);
-          // Continue with other images even if one fails
-        }
-      }
     }
     
     // Delete the product document

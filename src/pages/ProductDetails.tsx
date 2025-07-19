@@ -1,62 +1,191 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, Heart, Share2, ShoppingCart, Shield, Truck, RotateCcw, Award } from 'lucide-react';
+import { ArrowLeft, Star, Heart, Share2, ShoppingCart, Shield, Truck, RotateCcw, Award, Loader2, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { getProductById, deleteProduct } from '@/lib/products';
+import { toast } from 'sonner';
+import { useAuthContext } from '@/lib/AuthProvider';
+import { Product } from '@/lib/products';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import Cart from '@/components/Cart';
+import Wishlist from '@/components/Wishlist';
+import { addToCart } from '@/lib/cart';
+import { isInWishlist, toggleWishlistItem } from '@/lib/wishlist';
 
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuthContext();
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [isInWish, setIsInWish] = useState(false);
+  const [processingWishlist, setProcessingWishlist] = useState(false);
+  const [processingCart, setProcessingCart] = useState(false);
 
-  // Mock product data - in a real app this would come from an API
-  const product = {
-    id: id,
-    name: "DJI Phantom 4 Pro",
-    price: 739,
-    originalPrice: 899,
-    rating: 4.5,
-    reviewCount: 1002,
-    inStock: true,
-    description: "The DJI Phantom 4 Pro is a professional drone equipped with a 20-megapixel camera capable of shooting 4K/60fps video and Burst Mode stills at 14 fps. The onboard camera has been redesigned to use a 1-inch 20-megapixel CMOS sensor.",
-    features: [
-      "4K Ultra HD Video Recording",
-      "20MP Camera with 1-inch CMOS Sensor",
-      "Obstacle Sensing in 5 Directions",
-      "30-Minute Max Flight Time",
-      "7km HD Video Transmission",
-      "Intelligent Flight Modes"
-    ],
-    specifications: {
-      "Flight Time": "30 minutes",
-      "Max Speed": "72 km/h (45 mph)",
-      "Camera Resolution": "20 MP",
-      "Video Recording": "4K/60fps",
-      "Weight": "1388 g",
-      "Operating Temperature": "0° to 40°C (32° to 104°F)"
-    },
-    images: [
-      "https://placehold.co/600x600",
-      "https://placehold.co/600x600",
-      "https://placehold.co/600x600",
-      "https://placehold.co/600x600"
-    ]
+  useEffect(() => {
+    async function loadProduct() {
+      if (!id) return;
+      
+      try {
+        setLoading(true);
+        const productData = await getProductById(id);
+        
+        if (!productData) {
+          setError('Product not found');
+          toast.error('Product not found');
+        } else {
+          setProduct(productData);
+        }
+      } catch (err) {
+        console.error('Error fetching product:', err);
+        setError('Failed to load product');
+        toast.error('Failed to load product');
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    loadProduct();
+  }, [id]);
+
+  // Check if product is in wishlist
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (user && product) {
+        try {
+          const inWishlist = await isInWishlist(product.id);
+          setIsInWish(inWishlist);
+        } catch (error) {
+          console.error('Error checking wishlist status:', error);
+        }
+      }
+    };
+    
+    if (product) {
+      checkWishlistStatus();
+    }
+  }, [product, user]);
+
+  const handleAddToCart = async () => {
+    if (!product || !user) {
+      toast.error('Please log in to add items to cart');
+      return;
+    }
+    
+    setProcessingCart(true);
+    try {
+      await addToCart(product, quantity);
+      toast.success(`Added ${quantity} ${product.title} to cart`);
+      setIsCartOpen(true); // Open cart after adding
+    } catch (error: any) {
+      console.error('Error adding to cart:', error);
+      toast.error(error.message || 'Failed to add to cart');
+    } finally {
+      setProcessingCart(false);
+    }
   };
 
-  const handleAddToCart = () => {
-    console.log(`Added ${quantity} ${product.name} to cart`);
+  const handleBuyNow = async () => {
+    if (!product || !user) {
+      toast.error('Please log in to make a purchase');
+      return;
+    }
+    
+    setProcessingCart(true);
+    try {
+      await addToCart(product, quantity);
+      navigate('/dashboard/checkout');
+    } catch (error: any) {
+      console.error('Error processing purchase:', error);
+      toast.error(error.message || 'Failed to process purchase');
+    } finally {
+      setProcessingCart(false);
+    }
   };
 
-  const handleBuyNow = () => {
-    console.log(`Buy now: ${quantity} ${product.name}`);
+  const handleDeleteProduct = async () => {
+    if (!product || !user) return;
+    
+    try {
+      await deleteProduct(product.id);
+      toast.success('Product deleted successfully');
+      navigate('/dashboard/marketplace');
+    } catch (error: any) {
+      console.error('Error deleting product:', error);
+      toast.error(error.message || 'Failed to delete product');
+    }
   };
+
+  const handleToggleWishlist = async () => {
+    if (!product || !user) {
+      toast.error('Please log in to use wishlist');
+      return;
+    }
+    
+    setProcessingWishlist(true);
+    try {
+      const { added } = await toggleWishlistItem(product);
+      setIsInWish(added);
+      toast.success(added ? 'Added to wishlist' : 'Removed from wishlist');
+    } catch (error: any) {
+      console.error('Error updating wishlist:', error);
+      toast.error(error.message || 'Failed to update wishlist');
+    } finally {
+      setProcessingWishlist(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <p className="text-gray-500">Loading product details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Product Not Found</h2>
+          <p className="text-gray-500 mb-6">The product you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => navigate('/dashboard/marketplace')}>
+            Back to Marketplace
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate discount percentage if original price exists
+  const discountPercentage = product.originalPrice 
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) 
+    : 0;
 
   return (
     <div className="min-h-screen bg-white">
       {/* Back Navigation */}
-      <div className="border-b border-gray-200 px-6 py-4">
+      <div className="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
         <button 
           onClick={() => navigate('/dashboard/marketplace')}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
@@ -64,6 +193,50 @@ const ProductDetails = () => {
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Marketplace</span>
         </button>
+        
+        {/* Show delete/edit buttons if user is the product owner */}
+        {user && product && user.uid === product.sellerId && (
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => navigate(`/dashboard/marketplace/edit/${product.id}`)}
+            >
+              <Edit className="w-4 h-4" />
+              Edit
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete this product from the marketplace. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    className="bg-red-600 hover:bg-red-700"
+                    onClick={handleDeleteProduct}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        )}
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
@@ -72,30 +245,72 @@ const ProductDetails = () => {
           <div className="space-y-4">
             <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
               <img 
-                src={product.images[selectedImage]} 
-                alt={product.name}
+                src={product.images && product.images.length > 0 
+                  ? product.images[selectedImage] 
+                  : 'https://placehold.co/600x600?text=No+Image'} 
+                alt={product.title}
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="flex gap-2 overflow-x-auto">
-              {product.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                    selectedImage === index ? 'border-blue-500' : 'border-gray-200'
-                  }`}
-                >
-                  <img src={image} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
+              {product.images && product.images.length > 0 ? (
+                product.images.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(index)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                      selectedImage === index ? 'border-blue-500' : 'border-gray-200'
+                    }`}
+                  >
+                    <img src={image} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))
+              ) : (
+                <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-200">
+                  <img src="https://placehold.co/600x600?text=No+Image" alt="No image" className="w-full h-full object-cover" />
+                </div>
+              )}
             </div>
+            
+            {/* Add delete button below images if user is the product owner */}
+            {user && product && user.uid === product.sellerId && (
+              <div className="mt-4 flex justify-center">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="destructive" 
+                      className="flex items-center gap-2 w-full"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete This Product
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete this product from the marketplace. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        className="bg-red-600 hover:bg-red-700"
+                        onClick={handleDeleteProduct}
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
           </div>
 
           {/* Product Information */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h1>
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -104,14 +319,14 @@ const ProductDetails = () => {
                       className={`w-4 h-4 ${
                         star <= Math.floor(product.rating) 
                           ? 'fill-yellow-400 text-yellow-400' 
-                          : star === Math.ceil(product.rating)
+                          : star === Math.ceil(product.rating) && product.rating % 1 !== 0
                           ? 'fill-yellow-400/50 text-yellow-400'
                           : 'fill-gray-300 text-gray-300'
                       }`} 
                     />
                   ))}
                   <span className="text-sm text-gray-600 ml-2">
-                    {product.rating} ({product.reviewCount} reviews)
+                    {product.rating} ({product.reviews} reviews)
                   </span>
                 </div>
               </div>
@@ -120,18 +335,31 @@ const ProductDetails = () => {
             {/* Price */}
             <div className="flex items-baseline gap-3">
               <span className="text-3xl font-bold text-gray-900">${product.price}</span>
-              <span className="text-lg text-gray-500 line-through">${product.originalPrice}</span>
-              <span className="text-sm bg-red-100 text-red-800 px-2 py-1 rounded">
-                {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% off
-              </span>
+              {product.originalPrice && product.originalPrice > product.price && (
+                <>
+                  <span className="text-lg text-gray-500 line-through">${product.originalPrice}</span>
+                  <span className="text-sm bg-red-100 text-red-800 px-2 py-1 rounded">
+                    {discountPercentage}% off
+                  </span>
+                </>
+              )}
             </div>
 
             {/* Stock Status */}
             <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${product.inStock ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span className={`font-medium ${product.inStock ? 'text-green-700' : 'text-red-700'}`}>
-                {product.inStock ? 'In Stock' : 'Out of Stock'}
+              <div className={`w-3 h-3 rounded-full ${product.quantity > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span className={`font-medium ${product.quantity > 0 ? 'text-green-700' : 'text-red-700'}`}>
+                {product.quantity > 0 ? 'In Stock' : 'Out of Stock'}
               </span>
+              {product.quantity > 0 && (
+                <span className="text-sm text-gray-500">({product.quantity} available)</span>
+              )}
+            </div>
+
+            {/* Seller Info */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500">Sold by:</span>
+              <span className="text-sm font-medium">{product.sellerName}</span>
             </div>
 
             {/* Description */}
@@ -141,17 +369,19 @@ const ProductDetails = () => {
             </div>
 
             {/* Features */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Key Features</h3>
-              <ul className="space-y-2">
-                {product.features.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
-                    <span className="text-gray-700">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {product.features && product.features.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-3">Key Features</h3>
+                <ul className="space-y-2">
+                  {product.features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                      <span className="text-gray-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Quantity and Actions */}
             <div className="space-y-4 border-t pt-6">
@@ -161,13 +391,15 @@ const ProductDetails = () => {
                   <button 
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="px-3 py-2 hover:bg-gray-50"
+                    disabled={product.quantity === 0}
                   >
                     -
                   </button>
                   <span className="px-4 py-2 border-x border-gray-300">{quantity}</span>
                   <button 
-                    onClick={() => setQuantity(quantity + 1)}
+                    onClick={() => setQuantity(Math.min(product.quantity, quantity + 1))}
                     className="px-3 py-2 hover:bg-gray-50"
+                    disabled={product.quantity === 0 || quantity >= product.quantity}
                   >
                     +
                   </button>
@@ -178,7 +410,8 @@ const ProductDetails = () => {
                 <Button 
                   onClick={handleAddToCart}
                   variant="outline" 
-                  className="flex-1 flex items-center gap-2 py-3"
+                  className="flex-1 flex items-center justify-center gap-2 py-3"
+                  disabled={product.quantity === 0 || processingCart}
                 >
                   <ShoppingCart className="w-4 h-4" />
                   Add to Cart
@@ -186,15 +419,26 @@ const ProductDetails = () => {
                 <Button 
                   onClick={handleBuyNow}
                   className="flex-1 py-3 bg-blue-600 hover:bg-blue-700"
+                  disabled={product.quantity === 0 || processingCart}
                 >
                   Buy Now
                 </Button>
               </div>
 
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                  <Heart className="w-4 h-4" />
-                  Add to Wishlist
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex items-center gap-2"
+                  onClick={handleToggleWishlist}
+                  disabled={processingWishlist}
+                >
+                  {processingWishlist ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Heart className={`w-4 h-4 ${isInWish ? 'fill-red-500 text-red-500' : ''}`} />
+                  )}
+                  {isInWish ? 'Remove from Wishlist' : 'Add to Wishlist'}
                 </Button>
                 <Button variant="ghost" size="sm" className="flex items-center gap-2">
                   <Share2 className="w-4 h-4" />
@@ -231,25 +475,59 @@ const ProductDetails = () => {
         </div>
 
         {/* Product Specifications */}
+        {product.specifications && (
+          <div className="mt-12">
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Award className="w-5 h-5" />
+                  Technical Specifications
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {Object.entries(product.specifications).map(([key, value]) => (
+                    <div key={key} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                      <span className="font-medium text-gray-700">{key}</span>
+                      <span className="text-gray-900">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Seller Information */}
         <div className="mt-12">
           <Card>
             <CardContent className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Award className="w-5 h-5" />
-                Technical Specifications
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {Object.entries(product.specifications).map(([key, value]) => (
-                  <div key={key} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                    <span className="font-medium text-gray-700">{key}</span>
-                    <span className="text-gray-900">{value}</span>
-                  </div>
-                ))}
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100">
+                  {product.sellerPhoto ? (
+                    <img src={product.sellerPhoto} alt={product.sellerName} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 font-bold text-xl">
+                      {product.sellerName?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900">{product.sellerName}</h3>
+                  <p className="text-sm text-gray-500">Seller since {new Date(product.createdAt).toLocaleDateString()}</p>
+                </div>
+                <Button variant="outline" className="ml-auto">
+                  Contact Seller
+                </Button>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
+      
+      {/* Cart sidebar */}
+      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+      {/* Wishlist sidebar */}
+      <Wishlist isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
     </div>
   );
 };

@@ -14,59 +14,67 @@ const targetVsRealityData = [
 
 export const TargetVsRealityChart = () => {
   return (
-    <Card className="bg-white border border-gray-200 rounded-xl">
-      <CardHeader className="pb-4">
+    <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm">
+      <CardHeader className="pb-3 px-4 pt-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-zinc-900">Target vs Reality</CardTitle>
-          <select className="text-sm border border-gray-200 rounded-md px-3 py-1">
+          <select className="text-sm border border-gray-100 rounded-md px-3 py-1 bg-gray-50">
             <option>This Year</option>
             <option>Last Year</option>
             <option>Last 6 Months</option>
           </select>
         </div>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={targetVsRealityData} barCategoryGap={20}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis 
-              dataKey="month" 
-              axisLine={false} 
-              tickLine={false} 
-              className="text-sm text-gray-600"
-              tick={{ fontSize: 10 }}
-            />
-            <YAxis 
-              axisLine={false} 
-              tickLine={false} 
-              className="text-sm text-gray-600"
-              tick={{ fontSize: 10 }}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'white', 
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-              }}
-            />
-            <Bar 
-              dataKey="reality" 
-              fill="#10b981" 
-              name="Reality Sales"
-              radius={[2, 2, 0, 0]}
-              barSize={15}
-            />
-            <Bar 
-              dataKey="target" 
-              fill="#fbbf24" 
-              name="Target Sales"
-              radius={[2, 2, 0, 0]}
-              barSize={15}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-        <div className="mt-4 space-y-2">
+      <CardContent className="px-2 pb-4">
+        <div className="w-full" style={{ height: '280px' }}>
+          <ResponsiveContainer width="99%" height="100%">
+            <BarChart 
+              data={targetVsRealityData} 
+              barCategoryGap={20}
+              margin={{ top: 10, right: 10, bottom: 20, left: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis 
+                dataKey="month" 
+                axisLine={false} 
+                tickLine={false} 
+                className="text-sm text-gray-600"
+                tick={{ fontSize: 10 }}
+                dy={10}
+              />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                className="text-sm text-gray-600"
+                tick={{ fontSize: 10 }}
+                width={30}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'white', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
+              <Bar 
+                dataKey="reality" 
+                fill="#10b981" 
+                name="Reality Sales"
+                radius={[2, 2, 0, 0]}
+                barSize={15}
+              />
+              <Bar 
+                dataKey="target" 
+                fill="#fbbf24" 
+                name="Target Sales"
+                radius={[2, 2, 0, 0]}
+                barSize={15}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="mt-2 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>

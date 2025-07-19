@@ -20,13 +20,34 @@ import {
   Hash,
   X,
   Loader2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Trash2,
+  MoreVertical
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/lib/AuthProvider';
-import { Post as PostType, getPosts, createPost, toggleLike, addComment } from '@/lib/posts';
+import { Post as PostType, getPosts, createPost, toggleLike, addComment, deletePost } from '@/lib/posts';
 import { formatDistanceToNow } from 'date-fns';
 import { PostComments } from '@/components/PostComments';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from 'sonner';
 
 interface User {
   id: string;
@@ -79,6 +100,10 @@ const Feed = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  // Inside the Feed component, add a new state to track which post is being deleted
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
 
   // Load posts from Firestore
   useEffect(() => {
@@ -162,11 +187,12 @@ const Feed = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       
-      // Check file size (limit to 5MB)
-      if (file.size > 5 * 1024 * 1024) {
+      // Check file size - stricter limit for base64 storage (max 1MB)
+      const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
+      if (file.size > MAX_FILE_SIZE) {
         toast({
           title: "File too large",
-          description: "Image must be smaller than 5MB",
+          description: "Image must be smaller than 1MB when storing as base64",
           variant: "destructive",
         });
         return;
@@ -255,14 +281,14 @@ const Feed = () => {
       
       let errorMessage = 'Failed to create post';
       
-      if (error.message.includes('storage/unauthorized')) {
-        errorMessage = 'Image upload failed: Storage permission denied. Check Firebase rules.';
-      } else if (error.message.includes('firestore/permission-denied')) {
+      if (error.message.includes('firestore/permission-denied')) {
         errorMessage = 'Database access denied. Check Firestore rules.';
       } else if (error.message.includes('auth/')) {
         errorMessage = 'Authentication error: Please log in again.';
-      } else if (selectedImage && error.message.includes('storage/')) {
-        errorMessage = `Image upload error: ${error.message}`;
+      } else if (error.message.includes('Failed to process the image')) {
+        errorMessage = 'Failed to process the image. Please try with a smaller image or without an image.';
+      } else {
+        errorMessage = error.message || 'An unexpected error occurred.';
       }
       
       toast({
@@ -282,6 +308,39 @@ const Feed = () => {
     } catch (e) {
       return 'just now';
     }
+  };
+
+  const handleDeletePost = async () => {
+    if (!user || !postToDelete) return;
+
+    try {
+      await deletePost(postToDelete);
+      
+      // Update the posts state to remove the deleted post
+      setPosts(posts.filter(post => post.id !== postToDelete));
+      
+      toast({
+        title: "Post deleted",
+        description: "Your post has been deleted successfully",
+      });
+    } catch (error: any) {
+      console.error("Error deleting post:", error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      // Reset the post to delete
+      setPostToDelete(null);
+      setIsAlertOpen(false);
+    }
+  };
+
+  // Add this outside of the JSX return, but inside the component
+  const openDeleteDialog = (postId: string) => {
+    setPostToDelete(postId);
+    setIsAlertOpen(true);
   };
 
   return (
@@ -459,14 +518,38 @@ const Feed = () => {
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="rounded-full hover:bg-gray-100"
-                          onClick={() => handleFollow(post.authorId)}
-                        >
-                          <MoreHorizontal className="h-5 w-5 text-gray-500" />
-                        </Button>
+                        {/* Show dropdown menu with delete option for post owner */}
+                        {user && post.authorId === user.uid ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="rounded-full hover:bg-gray-100"
+                              >
+                                <MoreVertical className="h-5 w-5 text-gray-500" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40">
+                              <DropdownMenuItem 
+                                className="text-red-600 cursor-pointer"
+                                onClick={() => openDeleteDialog(post.id)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="rounded-full hover:bg-gray-100"
+                            onClick={() => handleFollow(post.authorId)}
+                          >
+                            <MoreHorizontal className="h-5 w-5 text-gray-500" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardHeader>
@@ -597,6 +680,26 @@ const Feed = () => {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your post.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPostToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-600 hover:bg-red-700" 
+              onClick={handleDeletePost}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

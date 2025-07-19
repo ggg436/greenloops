@@ -10,8 +10,8 @@ import {
 import { useAuthContext } from '@/lib/AuthProvider';
 import { toast } from 'sonner';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
+import { convertImagesToBase64 } from '@/lib/products';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -91,12 +91,21 @@ const AddProduct = () => {
     const selectedFiles = Array.from(e.target.files || []);
     if (selectedFiles.length === 0) return;
 
-    // Validate files
-    const validFiles = selectedFiles.filter(file => {
+    // Validate file type
+    const validTypeFiles = selectedFiles.filter(file => {
       const isValid = file.type.startsWith('image/');
       if (!isValid) toast.error(`${file.name} is not a valid image file`);
       return isValid;
     });
+
+    // Validate file size - max 1MB per file for base64
+    const validFiles = validTypeFiles.filter(file => {
+      const isValidSize = file.size <= 1 * 1024 * 1024; // 1MB
+      if (!isValidSize) toast.error(`${file.name} exceeds the 1MB limit`);
+      return isValidSize;
+    });
+
+    if (validFiles.length === 0) return;
 
     // Limit to 5 files
     const totalFiles = [...files, ...validFiles];
@@ -121,22 +130,18 @@ const AddProduct = () => {
     setPreviewUrls(previewUrls.filter((_, i) => i !== index));
   };
 
-  const uploadImages = async (): Promise<string[]> => {
+  const convertImages = async (): Promise<string[]> => {
     if (files.length === 0) return [];
     
     setIsUploading(true);
     try {
-      const uploadPromises = files.map(async file => {
-        const storageRef = ref(storage, `products/${user?.uid}/${Date.now()}-${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        return getDownloadURL(snapshot.ref);
-      });
-      
-      const urls = await Promise.all(uploadPromises);
-      return urls;
+      console.log(`Converting ${files.length} product images to base64`);
+      const base64Images = await convertImagesToBase64(files);
+      console.log('Images converted to base64 successfully');
+      return base64Images;
     } catch (error) {
-      console.error('Error uploading files:', error);
-      toast.error('Failed to upload images');
+      console.error('Error converting images to base64:', error);
+      toast.error('Failed to process images');
       return [];
     } finally {
       setIsUploading(false);
@@ -171,8 +176,8 @@ const AddProduct = () => {
     
     setIsSubmitting(true);
     try {
-      // Upload images if any
-      const imageUrls = files.length > 0 ? await uploadImages() : [];
+      // Convert images to base64 if any
+      const imageUrls = files.length > 0 ? await convertImages() : [];
       
       // Add product to Firestore
       const productData = {
@@ -376,7 +381,7 @@ const AddProduct = () => {
                     Drag & drop or click to upload (max 5 images)
                   </p>
                   <p className="text-xs text-gray-400">
-                    Supported formats: JPG, PNG, WebP
+                    Max size: 1MB per image (JPG, PNG, WebP)
                   </p>
                 </div>
               </div>

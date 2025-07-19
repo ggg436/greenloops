@@ -14,10 +14,11 @@ import {
   arrayUnion, 
   arrayRemove,
   Timestamp,
-  DocumentData
+  DocumentData,
+  writeBatch
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
-import { uploadFile } from './storage';
+import { fileToBase64 } from './storage';
 
 export interface PostComment {
   id: string;
@@ -149,14 +150,20 @@ export const createPost = async (
       hashtags.push(match[1]);
     }
     
-    // Upload image if provided
+    // Convert image to base64 if provided
     let imageUrl = null;
     if (imageFile) {
-      const path = `posts/${user.uid}/${Date.now()}-${imageFile.name}`;
-      const uploadResult = await uploadFile(imageFile, path);
-      imageUrl = uploadResult.url;
+      console.log(`Converting image to base64: ${imageFile.name} (${imageFile.size} bytes)`);
+      try {
+        imageUrl = await fileToBase64(imageFile);
+        console.log('Image successfully converted to base64');
+      } catch (error) {
+        console.error('Error converting image to base64:', error);
+        throw new Error('Failed to process the image');
+      }
     }
     
+    console.log('Creating post with' + (imageUrl ? '' : 'out') + ' image');
     const docRef = await addDoc(collection(db, 'posts'), {
       ...postData,
       authorId: user.uid,
@@ -169,6 +176,7 @@ export const createPost = async (
       imageUrl: imageUrl
     });
     
+    console.log('Post created successfully with ID:', docRef.id);
     return docRef.id;
   } catch (error) {
     console.error("Error creating post:", error);
@@ -260,6 +268,46 @@ export const getComments = async (postId: string): Promise<PostComment[]> => {
     });
   } catch (error) {
     console.error("Error getting comments:", error);
+    throw error;
+  }
+}; 
+
+// Delete a post
+export const deletePost = async (postId: string): Promise<void> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not authenticated");
+  
+  try {
+    const postRef = doc(db, 'posts', postId);
+    const postSnap = await getDoc(postRef);
+    
+    if (!postSnap.exists()) {
+      throw new Error("Post not found");
+    }
+    
+    const post = postSnap.data();
+    
+    // Verify owner
+    if (post.authorId !== user.uid) {
+      throw new Error("You don't have permission to delete this post");
+    }
+    
+    // Delete comments subcollection first
+    const commentsQuery = query(collection(db, 'posts', postId, 'comments'));
+    const commentsSnapshot = await getDocs(commentsQuery);
+    
+    const batch = writeBatch(db);
+    commentsSnapshot.forEach((commentDoc) => {
+      batch.delete(commentDoc.ref);
+    });
+    
+    // Delete the post document
+    batch.delete(postRef);
+    await batch.commit();
+    
+    console.log(`Post ${postId} and its comments deleted successfully`);
+  } catch (error) {
+    console.error("Error deleting post:", error);
     throw error;
   }
 }; 

@@ -20,11 +20,11 @@ const visitorData = [
 
 export const VisitorInsightsChart = () => {
   return (
-    <Card className="bg-white border border-gray-200 rounded-xl h-full">
-      <CardHeader className="pb-4">
+    <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm h-full">
+      <CardHeader className="pb-3 px-4 pt-4">
         <CardTitle className="text-lg font-semibold text-zinc-900">Visitor Insights</CardTitle>
       </CardHeader>
-      <CardContent className="px-2 pb-2 flex-1 flex flex-col">
+      <CardContent className="px-2 pb-4 flex-1 flex flex-col">
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={visitorData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

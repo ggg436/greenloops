@@ -1,11 +1,26 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, ShoppingBag, Heart, Package, Star, MapPin, Filter, LayoutGrid, List, ShoppingCart, ChevronDown, User, Loader2 } from 'lucide-react';
+import { Search, ShoppingBag, Heart, Package, Star, MapPin, Filter, LayoutGrid, List, ShoppingCart, ChevronDown, User, Loader2, Trash2 } from 'lucide-react';
 import { useAuthContext } from '@/lib/AuthProvider';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Product, getProducts } from '@/lib/products';
+import { Product, getProducts, deleteProduct } from '@/lib/products';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import Cart from '@/components/Cart';
+import Wishlist from '@/components/Wishlist';
+import { addToCart } from '@/lib/cart';
+import { toggleWishlistItem, isInWishlist } from '@/lib/wishlist';
 
 const Marketplace = () => {
   const navigate = useNavigate();
@@ -14,6 +29,12 @@ const Marketplace = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [wishlistStatus, setWishlistStatus] = useState<Record<string, boolean>>({});
+  const [processingProductId, setProcessingProductId] = useState<string | null>(null);
 
   // Get user's display name or email
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'Guest';
@@ -50,6 +71,30 @@ const Marketplace = () => {
     fetchProducts();
   }, [selectedCategory]);
 
+  // Add this useEffect to check wishlist status for products
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      try {
+        if (!user) return;
+        
+        const statusMap: Record<string, boolean> = {};
+        await Promise.all(
+          products.map(async (product) => {
+            const inWishlist = await isInWishlist(product.id);
+            statusMap[product.id] = inWishlist;
+          })
+        );
+        setWishlistStatus(statusMap);
+      } catch (error) {
+        console.error('Error checking wishlist status:', error);
+      }
+    };
+    
+    if (products.length > 0) {
+      checkWishlistStatus();
+    }
+  }, [products, user]);
+
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -72,6 +117,70 @@ const Marketplace = () => {
 
   const handleProductClick = (productId: string) => {
     navigate(`/dashboard/marketplace/${productId}`);
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!productToDelete) return;
+
+    try {
+      await deleteProduct(productToDelete);
+      
+      // Update the products list to remove the deleted product
+      setProducts(products.filter(product => product.id !== productToDelete));
+      
+      toast.success('Product deleted successfully');
+    } catch (error: any) {
+      console.error('Error deleting product:', error);
+      toast.error(error.message || 'Failed to delete product');
+    } finally {
+      setProductToDelete(null);
+      setIsAlertOpen(false);
+    }
+  };
+
+  // Add these handler functions
+  const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      toast.error('Please log in to add items to cart');
+      return;
+    }
+    
+    setProcessingProductId(product.id);
+    try {
+      await addToCart(product, 1);
+      toast.success(`${product.title} added to cart!`);
+    } catch (error: any) {
+      console.error('Error adding to cart:', error);
+      toast.error(error.message || 'Failed to add to cart');
+    } finally {
+      setProcessingProductId(null);
+    }
+  };
+
+  const handleToggleWishlist = async (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      toast.error('Please log in to add items to wishlist');
+      return;
+    }
+    
+    setProcessingProductId(product.id);
+    try {
+      const { added } = await toggleWishlistItem(product);
+      setWishlistStatus({
+        ...wishlistStatus,
+        [product.id]: added
+      });
+      toast.success(added ? 'Added to wishlist' : 'Removed from wishlist');
+    } catch (error: any) {
+      console.error('Error updating wishlist:', error);
+      toast.error(error.message || 'Failed to update wishlist');
+    } finally {
+      setProcessingProductId(null);
+    }
   };
 
   return (
@@ -107,15 +216,28 @@ const Marketplace = () => {
                 <Package className="w-4 h-4" />
                 <span>Orders</span>
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 rounded">
-                <Heart className="w-4 h-4" />
+              <Link
+                to="#"
+                className="flex items-center gap-4 text-gray-600 hover:text-blue-600"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsWishlistOpen(true);
+                }}
+              >
+                <Heart className="h-5 w-5" />
                 <span>Favorites</span>
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 rounded relative">
-                <ShoppingBag className="w-4 h-4" />
+              </Link>
+              <Link
+                to="#"
+                className="flex items-center gap-4 text-gray-600 hover:text-blue-600"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsCartOpen(true);
+                }}
+              >
+                <ShoppingBag className="h-5 w-5" />
                 <span>Cart</span>
-                <span className="absolute -top-1 -right-1 bg-red-400 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
-              </button>
+              </Link>
               
               {user ? (
                 // Show user profile when logged in
@@ -317,26 +439,47 @@ const Marketplace = () => {
                       onClick={() => handleProductClick(product.id)}
                     >
                       <div className="absolute top-2 right-2 flex flex-col gap-2 z-20">
-                        <button className="p-2 hover:bg-gray-100 rounded">
-                          <Heart className="w-4 h-4 text-gray-400" />
+                        <button 
+                          className="p-2 hover:bg-gray-100 rounded"
+                          onClick={(e) => handleToggleWishlist(e, product)}
+                          disabled={processingProductId === product.id}
+                        >
+                          <Heart 
+                            className={`w-4 h-4 ${wishlistStatus[product.id] ? 'text-red-500 fill-red-500' : 'text-gray-400'}`}
+                          />
                         </button>
                         <button className="p-2 hover:bg-gray-100 rounded">
                           <Package className="w-4 h-4 text-gray-400" />
                         </button>
+                        
+                        {/* Delete button - only visible to product owner */}
+                        {user && user.uid === product.sellerId && (
+                          <button 
+                            className="p-2 hover:bg-gray-100 rounded"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setProductToDelete(product.id);
+                              setIsAlertOpen(true);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </button>
+                        )}
                       </div>
                       
                       {/* Hover overlay with buttons */}
                       <div className="absolute inset-0 bg-black/70 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
                         <div className="flex flex-col gap-3">
                           <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Add to cart logic
-                              toast.success(`${product.title} added to cart!`);
-                            }}
+                            onClick={(e) => handleAddToCart(e, product)}
+                            disabled={processingProductId === product.id}
                             className="flex items-center gap-2 bg-white text-gray-800 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
                           >
-                            <ShoppingCart className="w-4 h-4" />
+                            {processingProductId === product.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <ShoppingCart className="w-4 h-4" />
+                            )}
                             Add to Cart
                           </button>
                           <button 
@@ -390,6 +533,33 @@ const Marketplace = () => {
       <button className="fixed bottom-8 right-8 w-14 h-14 bg-blue-500 rounded-full shadow-lg flex items-center justify-center">
         <div className="w-7 h-6 bg-white rounded" />
       </button>
+
+      {/* Delete product confirmation dialog */}
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this product from the marketplace. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setProductToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-600 hover:bg-red-700"
+              onClick={handleDeleteProduct}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cart sidebar */}
+      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+      {/* Wishlist sidebar */}
+      <Wishlist isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
     </div>
   );
 };

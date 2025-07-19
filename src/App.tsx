@@ -25,6 +25,8 @@ import DashboardLayout from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import Orders from "./pages/Orders";
+import Checkout from "./pages/Checkout";
 import { AuthProvider, ProtectedRoute, PublicRoute } from "./lib/AuthProvider";
 
 const queryClient = new QueryClient();
@@ -57,6 +59,8 @@ const App = () => (
               <Route path="marketplace/:id" element={<ProductDetails />} />
               <Route path="transactions" element={<Transactions />} />
               <Route path="transactions/:id" element={<TransactionDetails />} />
+              <Route path="orders" element={<Orders />} />
+              <Route path="checkout" element={<Checkout />} />
               <Route path="weather" element={<Weather />} />
               <Route path="pricing" element={<Pricing />} />
               <Route path="settings" element={<Settings />} />

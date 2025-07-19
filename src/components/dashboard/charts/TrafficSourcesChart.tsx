@@ -10,18 +10,18 @@ const trafficSources = [
 
 export const TrafficSourcesChart = () => {
   return (
-    <Card className="bg-white border border-gray-200 rounded-xl">
-      <CardHeader className="pb-4">
+    <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm">
+      <CardHeader className="pb-3 px-4 pt-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-zinc-900">Traffic Sources</CardTitle>
-          <select className="text-sm border border-gray-200 rounded-md px-3 py-1">
+          <select className="text-sm border border-gray-100 rounded-md px-3 py-1 bg-gray-50">
             <option>Last 7 Days</option>
             <option>Last 30 Days</option>
             <option>Last 90 Days</option>
           </select>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 pb-4">
         <div className="space-y-4">
           {trafficSources.map((source, index) => (
             <div key={index} className="flex items-center justify-between">

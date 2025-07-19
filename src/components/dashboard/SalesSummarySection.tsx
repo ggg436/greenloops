@@ -46,20 +46,20 @@ export const SalesSummarySection = () => {
       <VisitorInsightsChart />
 
       {/* Today's Sales */}
-      <Card className="bg-white border border-gray-200 rounded-xl h-full">
-        <CardHeader className="pb-4">
+      <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm h-full">
+        <CardHeader className="pb-3 px-4 pt-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold text-zinc-900">Today's Sales</CardTitle>
-            <button className="text-sm text-gray-600 border border-gray-200 rounded-md px-3 py-1 hover:bg-gray-50">
+            <button className="text-sm text-gray-600 border border-gray-100 rounded-md px-3 py-1 bg-gray-50 hover:bg-gray-100">
               Export
             </button>
           </div>
           <p className="text-sm text-gray-600">Sales Summary</p>
         </CardHeader>
-        <CardContent className="flex-1">
+        <CardContent className="px-4 pb-4 flex-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {salesData.map((item, index) => (
-              <div key={index} className={`${item.bgColor} rounded-lg p-4`}>
+              <div key={index} className={`${item.bgColor} rounded-xl p-4 shadow-sm`}>
                 <div className="flex items-center justify-between mb-2">
                   <div className={`w-8 h-8 ${item.bgColor} rounded-lg flex items-center justify-center`}>
                     <item.icon className={`w-4 h-4 ${item.iconColor}`} />

@@ -10,11 +10,11 @@ const topProducts = [
 
 export const TopProductsChart = () => {
   return (
-    <Card className="bg-white border border-gray-200 rounded-xl">
-      <CardHeader className="pb-4">
+    <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm">
+      <CardHeader className="pb-3 px-4 pt-4">
         <CardTitle className="text-lg font-semibold text-zinc-900">Top Products</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 pb-4">
         <div className="space-y-4">
           <div className="grid grid-cols-12 gap-4 text-sm text-gray-500 mb-4">
             <div className="col-span-1">#</div>
@@ -31,7 +31,7 @@ export const TopProductsChart = () => {
                 <span className="text-sm text-gray-700">{product.name}</span>
               </div>
               <div className="col-span-4">
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-100 rounded-full h-2">
                   <div className={`${product.color} h-2 rounded-full`} style={{ width: `${product.percentage}%` }}></div>
                 </div>
               </div>

@@ -12,45 +12,47 @@ const cropDistribution = [
 
 export const CropDistributionChart = () => {
   return (
-    <Card className="bg-white border border-gray-200 rounded-xl">
-      <CardHeader className="pb-4">
+    <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm">
+      <CardHeader className="pb-3 px-4 pt-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-zinc-900">Crop Distribution</CardTitle>
-          <select className="text-sm border border-gray-200 rounded-md px-3 py-1">
+          <select className="text-sm border border-gray-100 rounded-md px-3 py-1 bg-gray-50">
             <option>Current Season</option>
             <option>Last Season</option>
             <option>Yearly Average</option>
           </select>
         </div>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie
-              data={cropDistribution}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={100}
-              paddingAngle={5}
-              dataKey="value"
-            >
-              {cropDistribution.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'white', 
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-              }}
-              formatter={(value) => [`${value}%`, 'Distribution']}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="mt-4 space-y-2">
+      <CardContent className="px-2 pb-4">
+        <div className="w-full" style={{ height: '260px' }}>
+          <ResponsiveContainer width="99%" height="100%">
+            <PieChart>
+              <Pie
+                data={cropDistribution}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={90}
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {cropDistribution.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'white', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+                formatter={(value) => [`${value}%`, 'Distribution']}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="mt-2 space-y-1 px-2">
           {cropDistribution.map((crop, index) => (
             <div key={index} className="flex items-center justify-between">
               <div className="flex items-center">

@@ -21,7 +21,8 @@ import {
   Trophy,
   Package,
   MessageSquare,
-  Box
+  Box,
+  ShoppingBag
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,11 @@ const navigationItems = [
     title: 'Marketplace', 
     url: '/dashboard/marketplace', 
     icon: ShoppingCart 
+  },
+  { 
+    title: 'Orders', 
+    url: '/dashboard/orders', 
+    icon: ShoppingBag 
   },
   { 
     title: 'Transactions', 
