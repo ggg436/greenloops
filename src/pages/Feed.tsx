@@ -22,11 +22,14 @@ import {
   Loader2,
   Image as ImageIcon,
   Trash2,
-  MoreVertical
+  MoreVertical,
+  UserCheck
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/lib/AuthProvider';
 import { Post as PostType, getPosts, createPost, toggleLike, addComment, deletePost } from '@/lib/posts';
+import { getUserProfile, toggleFollowUser, checkIfFollowing, UserProfile } from '@/lib/users';
+import { initializeAllUserProfiles } from '@/lib/initializeUserProfiles';
 import { formatDistanceToNow } from 'date-fns';
 import { PostComments } from '@/components/PostComments';
 import {
@@ -89,43 +92,92 @@ const mockRecommendations: User[] = [
 const topicTags = ['Design', 'User Experience', 'UI', 'Photography', 'Viral', 'Illustration', 'Print Design', 'Productivity'];
 
 const Feed = () => {
-  const [posts, setPosts] = useState<PostType[]>([]);
-  const [newPost, setNewPost] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
   const { user } = useAuthContext();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const { toast } = useToast();
   const navigate = useNavigate();
-
-  // Inside the Feed component, add a new state to track which post is being deleted
-  const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [posts, setPosts] = useState<PostType[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [newPost, setNewPost] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
   const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [followStatus, setFollowStatus] = useState<Record<string, boolean>>({});
+  const [authorProfiles, setAuthorProfiles] = useState<Record<string, UserProfile>>({});
+
+  useEffect(() => {
+    // Initialize all user profiles when component mounts
+    // This ensures the follow system works even for older users
+    initializeAllUserProfiles().catch(error => 
+      console.error("Error initializing user profiles:", error)
+    );
+    
+    loadPosts();
+    if (user) {
+      loadUserProfile();
+    }
+  }, [user]);
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const profile = await getUserProfile(user.uid);
+      if (profile) {
+        setUserProfile(profile);
+      }
+    } catch (error) {
+      console.error("Error loading user profile:", error);
+    }
+  };
 
   // Load posts from Firestore
-  useEffect(() => {
-    const loadPosts = async () => {
-      try {
-        setIsLoading(true);
-        const postsData = await getPosts();
-        setPosts(postsData);
-      } catch (error: any) {
-        console.error("Error loading posts:", error);
-        toast({
-          title: "Error loading posts",
-          description: error.message,
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadPosts();
-  }, [toast]);
+  const loadPosts = async () => {
+    try {
+      setIsLoading(true);
+      const postsData = await getPosts();
+      setPosts(postsData);
+      
+      // Load author profiles for each post
+      const uniqueAuthorIds = [...new Set(postsData.map(post => post.authorId))];
+      const profilePromises = uniqueAuthorIds.map(async (authorId) => {
+        try {
+          const profile = await getUserProfile(authorId);
+          if (profile) {
+            return { authorId, profile };
+          }
+          return null;
+        } catch (error) {
+          console.error(`Error loading profile for ${authorId}:`, error);
+          return null;
+        }
+      });
+      
+      const authorProfileResults = await Promise.all(profilePromises);
+      const profilesMap: Record<string, UserProfile> = {};
+      
+      authorProfileResults.forEach(result => {
+        if (result) {
+          profilesMap[result.authorId] = result.profile;
+        }
+      });
+      
+      setAuthorProfiles(profilesMap);
+    } catch (error: any) {
+      console.error("Error loading posts:", error);
+      toast({
+        title: "Error loading posts",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLike = async (postId: string) => {
     if (!user) {
@@ -170,12 +222,83 @@ const Feed = () => {
     }
   };
 
-  const handleFollow = (userId: string) => {
-    toast({
-      title: "Following user",
-      description: "You are now following this user.",
-    });
+  const handleFollow = async (userId: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to follow users",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const result = await toggleFollowUser(userId);
+      
+      // Update follow status in state
+      setFollowStatus(prev => ({
+        ...prev,
+        [userId]: result.isFollowing
+      }));
+      
+      // Update author profile followers count in state
+      if (authorProfiles[userId]) {
+        setAuthorProfiles(prev => ({
+          ...prev,
+          [userId]: {
+            ...prev[userId],
+            followersCount: result.isFollowing 
+              ? (prev[userId].followersCount + 1)
+              : Math.max(0, prev[userId].followersCount - 1)
+          }
+        }));
+      }
+      
+      // Update current user profile
+      loadUserProfile();
+      
+      toast({
+        title: result.isFollowing ? "Following user" : "Unfollowed user",
+        description: result.isFollowing 
+          ? "You are now following this user." 
+          : "You are no longer following this user.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update follow status",
+        variant: "destructive",
+      });
+    }
   };
+
+  // Check if current user is following a specific user
+  const checkFollowStatus = async (userId: string) => {
+    if (!user) return false;
+    
+    try {
+      const isFollowing = await checkIfFollowing(userId);
+      setFollowStatus(prev => ({
+        ...prev,
+        [userId]: isFollowing
+      }));
+      return isFollowing;
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    // Check follow status for post authors when posts load
+    if (user && posts.length > 0) {
+      posts.forEach(post => {
+        if (post.authorId !== user.uid) {
+          checkFollowStatus(post.authorId);
+        }
+      });
+    }
+  }, [posts, user]);
 
   const handleImageClick = () => {
     if (fileInputRef.current) {
@@ -437,7 +560,8 @@ const Feed = () => {
                       <img 
                         src={imagePreviewUrl} 
                         alt="Preview" 
-                        className="max-h-64 rounded-lg object-cover"
+                        className="rounded-lg w-full object-contain max-h-[400px]"
+                        style={{ marginLeft: 'auto', marginRight: 'auto' }}
                       />
                       <button
                         type="button"
@@ -510,11 +634,38 @@ const Feed = () => {
                           <AvatarImage src={post.authorAvatar || "/placeholder.svg"} />
                           <AvatarFallback>{post.authorName?.[0] || "?"}</AvatarFallback>
                         </Avatar>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{post.authorName}</h3>
-                          <p className="text-sm text-gray-500">
-                            {post.authorHandle} • {formatTimestamp(post.createdAt as Date)}
-                          </p>
+                        <div className="flex flex-col sm:flex-row sm:items-center">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{post.authorName}</h3>
+                            <div className="flex items-center gap-1">
+                              <p className="text-sm text-gray-500">
+                                {post.authorHandle} • {formatTimestamp(post.createdAt as Date)}
+                              </p>
+                              <p className="text-sm text-gray-500 hidden sm:inline-block">
+                                • {authorProfiles[post.authorId]?.followersCount || 0} followers
+                              </p>
+                            </div>
+                          </div>
+                          {user && post.authorId !== user.uid && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={`mt-2 sm:mt-0 sm:ml-3 rounded-full px-3 text-xs ${followStatus[post.authorId] ? 'bg-blue-50 text-blue-600' : ''}`}
+                              onClick={() => handleFollow(post.authorId)}
+                            >
+                              {followStatus[post.authorId] ? (
+                                <>
+                                  <UserCheck className="h-3 w-3 mr-1" />
+                                  Following
+                                </>
+                              ) : (
+                                <>
+                                  <UserPlus className="h-3 w-3 mr-1" />
+                                  Follow
+                                </>
+                              )}
+                            </Button>
+                          )}
                         </div>
                       </div>
                       <div className="flex space-x-2">
@@ -545,7 +696,7 @@ const Feed = () => {
                             variant="ghost" 
                             size="icon" 
                             className="rounded-full hover:bg-gray-100"
-                            onClick={() => handleFollow(post.authorId)}
+                            onClick={() => {}}
                           >
                             <MoreHorizontal className="h-5 w-5 text-gray-500" />
                           </Button>
@@ -562,7 +713,8 @@ const Feed = () => {
                         <img 
                           src={post.imageUrl} 
                           alt="Post attachment" 
-                          className="rounded-lg max-h-96 w-full object-cover"
+                          className="rounded-lg w-full object-contain max-h-[600px]"
+                          style={{ marginLeft: 'auto', marginRight: 'auto' }}
                         />
                       </div>
                     )}
@@ -621,11 +773,11 @@ const Feed = () => {
                   <div className="text-xs text-gray-500">Posts</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">11.2K</div>
+                  <div className="text-2xl font-bold text-gray-900">{userProfile?.followersCount || 0}</div>
                   <div className="text-xs text-gray-500">Followers</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">501</div>
+                  <div className="text-2xl font-bold text-gray-900">{userProfile?.followingCount || 0}</div>
                   <div className="text-xs text-gray-500">Following</div>
                 </div>
               </div>
