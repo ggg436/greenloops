@@ -19,31 +19,6 @@ const Header = () => {
 
   return (
     <>
-      {/* Top Info Bar */}
-      <div className="w-full bg-blue-600 text-white py-2 px-8">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <PhoneCall className="w-4 h-4" />
-              <span className="text-sm">+9779868597841</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Mail className="w-4 h-4" />
-              <span className="text-sm">info@krishakai.com</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <MapPin className="w-4 h-4" />
-              <span className="text-sm">Kathmandu, Nepal</span>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <a href="#" className="text-sm hover:text-blue-200 transition-colors">Farmer Support</a>
-            <a href="#" className="text-sm hover:text-blue-200 transition-colors">Agricultural News</a>
-            <a href="#" className="text-sm hover:text-blue-200 transition-colors">NPR ₨</a>
-          </div>
-        </div>
-      </div>
-
       {/* Main Header */}
       <header className="w-full px-8 py-6 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
