@@ -21,6 +21,14 @@ const keyframeStyles = `
   }
 `;
 
+// User avatar data
+const userAvatars = [
+  "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8aW5kaWFuJTIwZmFybWVyfGVufDB8fDB8fHww&auto=format&fit=crop&w=100&h=100&q=80",
+  "https://images.unsplash.com/photo-1507152832244-10d45c7eda57?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGluZGlhbiUyMGZhcm1lcnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=100&h=100&q=80",
+  "https://images.unsplash.com/photo-1580132849350-28fda8fef6d3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8ZmFybWVyJTIwcG9ydHJhaXR8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=100&h=100&q=80",
+  "https://images.unsplash.com/photo-1589677677517-5784e74663ce?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZmFybWVyJTIwZmFjZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=100&h=100&q=80"
+];
+
 const HeroSection = () => {
   const [email, setEmail] = useState('');
   const navigate = useNavigate();
@@ -100,9 +108,13 @@ const HeroSection = () => {
               <div className="flex flex-wrap items-center gap-8">
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
-                    {[...Array(4)].map((_, i) => (
-                      <div key={i} className={`w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-xs font-medium text-white bg-blue-${(i+5)*100}`}>
-                        {String.fromCharCode(65 + i)}
+                    {userAvatars.map((avatar, i) => (
+                      <div key={i} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden">
+                        <img 
+                          src={avatar} 
+                          alt={`User ${i+1}`}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     ))}
                   </div>
