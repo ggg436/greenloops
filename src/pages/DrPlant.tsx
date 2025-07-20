@@ -17,9 +17,11 @@ import {
   ThermometerSun,
   Stethoscope,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Info
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import { analyzePlantDisease } from '@/services/plantDiseaseService';
 
 interface PlantAnalysis {
   disease: string;
@@ -33,75 +35,93 @@ interface PlantAnalysis {
     organic: string[];
   };
   timeframe: string;
+  isHealthy?: boolean;
 }
 
 const DrPlant = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<PlantAnalysis | null>(null);
-  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Reset previous analysis and errors
+      setAnalysis(null);
+      setError(null);
+      
+      // Check file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('File size exceeds 10MB limit');
+        return;
+      }
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please upload an image file');
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onload = (e) => {
         setSelectedImage(e.target?.result as string);
-        setAnalysis(null);
+      };
+      reader.onerror = () => {
+        toast.error('Error reading file');
       };
       reader.readAsDataURL(file);
     }
   };
 
   const analyzeImage = async () => {
-    if (!selectedImage) return;
+    if (!selectedImage) {
+      toast.error('Please select an image first');
+      return;
+    }
     
     setIsAnalyzing(true);
+    setError(null);
     
-    // Simulate AI analysis with mock data
-    setTimeout(() => {
-      const mockAnalysis: PlantAnalysis = {
-        disease: "Leaf Spot Disease",
-        confidence: 87,
-        severity: "Medium",
-        description: "A common fungal infection that affects plant leaves, causing circular spots with dark borders. This condition is often caused by excessive moisture and poor air circulation.",
-        symptoms: [
-          "Dark circular spots on leaves",
-          "Yellow halos around spots",
-          "Premature leaf drop",
-          "Reduced plant vigor"
-        ],
-        treatment: {
-          immediate: [
-            "Remove affected leaves immediately",
-            "Apply copper-based fungicide spray",
-            "Improve air circulation around plant",
-            "Avoid overhead watering"
-          ],
-          preventive: [
-            "Water at soil level, not on leaves",
-            "Ensure proper spacing between plants",
-            "Apply mulch to prevent soil splashing",
-            "Regular inspection of plants"
-          ],
-          organic: [
-            "Neem oil spray application",
-            "Baking soda solution (1 tsp per quart water)",
-            "Compost tea foliar spray",
-            "Companion planting with marigolds"
-          ]
-        },
-        timeframe: "7-14 days for improvement with proper treatment"
-      };
-      
-      setAnalysis(mockAnalysis);
-      setIsAnalyzing(false);
-      
-      toast({
-        title: "Analysis Complete",
-        description: "Plant disease analysis has been completed successfully.",
+    try {
+      toast('Analyzing your plant image...', {
+        duration: 3000
       });
-    }, 3000);
+      
+      console.log('Starting plant analysis in DrPlant component');
+      
+      // Call the plant disease detection service
+      const result = await analyzePlantDisease(selectedImage);
+      
+      console.log('Analysis result received in DrPlant:', result);
+      
+      setAnalysis({
+        disease: result.disease,
+        confidence: result.confidence,
+        severity: result.severity,
+        description: result.description,
+        symptoms: result.symptoms,
+        treatment: result.treatment,
+        timeframe: result.timeframe,
+        isHealthy: result.isHealthy
+      });
+      
+      toast.message(`Analysis Complete: ${result.isHealthy ? 'Plant appears healthy!' : 'Issue detected'}`);
+    } catch (error: any) {
+      console.error('Error analyzing image in DrPlant component:', error);
+      setError(error.message || 'Failed to analyze image');
+      
+      // Show a more user-friendly error message
+      if (error.message.includes('timeout') || error.message.includes('Network Error')) {
+        toast.error('Connection to plant analysis service timed out. Please try again later.');
+      } else if (error.message.includes('API key')) {
+        toast.error('Authentication error with plant analysis service.');
+      } else {
+        toast.error(`Analysis failed: ${error.message || 'Unknown error'}`);
+      }
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const getSeverityColor = (severity: string) => {
@@ -182,6 +202,7 @@ const DrPlant = () => {
                         onClick={() => {
                           setSelectedImage(null);
                           setAnalysis(null);
+                          setError(null);
                         }}
                         className="rounded-2xl px-8 py-4 text-lg border-2 hover:bg-gray-50"
                         size="lg"
@@ -214,6 +235,15 @@ const DrPlant = () => {
                   </div>
                 )}
               </div>
+
+              {error && (
+                <Alert className="bg-gradient-to-r from-red-50 to-pink-50 border-red-300 rounded-2xl">
+                  <Info className="h-5 w-5 text-red-600" />
+                  <AlertDescription className="text-red-800 text-base">
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <Alert className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 rounded-2xl">
                 <Leaf className="h-5 w-5 text-green-600" />
@@ -252,7 +282,7 @@ const DrPlant = () => {
                     <h3 className="text-xl font-bold text-gray-900">{analysis.disease}</h3>
                     <div className="flex items-center gap-3">
                       <Badge className={`${getSeverityColor(analysis.severity)} border font-medium`}>
-                        {analysis.severity} Risk
+                        {analysis.isHealthy ? 'Healthy' : `${analysis.severity} Risk`}
                       </Badge>
                       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                         {analysis.confidence}% confident
@@ -267,7 +297,7 @@ const DrPlant = () => {
                   <div>
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-gray-900">
                       <CheckCircle className="w-5 h-5 text-green-600" />
-                      Symptoms Detected
+                      {analysis.isHealthy ? 'Health Indicators' : 'Symptoms Detected'}
                     </h4>
                     <ul className="space-y-2">
                       {analysis.symptoms.map((symptom, index) => (

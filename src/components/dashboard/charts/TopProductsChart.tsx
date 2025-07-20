@@ -19,29 +19,29 @@ export const TopProductsChart = () => {
   }));
   
   return (
-    <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm">
+    <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm h-full">
       <CardHeader className="pb-3 px-4 pt-4">
         <CardTitle className="text-lg font-semibold text-zinc-900">{t('chart.topProducts')}</CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4">
-        <div className="space-y-4">
-          <div className="grid grid-cols-12 gap-4 text-sm text-gray-500 mb-4">
-            <div className="col-span-1">#</div>
-            <div className="col-span-5">{t('dashboard.name')}</div>
-            <div className="col-span-4">{t('dashboard.popularity')}</div>
-            <div className="col-span-2">{t('dashboard.sales')}</div>
+      <CardContent className="px-4 pb-8">
+        <div className="space-y-8">
+          <div className="grid grid-cols-12 gap-4 text-sm text-gray-500 mb-6">
+            <div className="col-span-1 font-medium">#</div>
+            <div className="col-span-5 font-medium">{t('dashboard.name')}</div>
+            <div className="col-span-4 font-medium">{t('dashboard.popularity')}</div>
+            <div className="col-span-2 font-medium">{t('dashboard.sales')}</div>
           </div>
           {translatedProducts.map((product, index) => (
             <div key={index} className="grid grid-cols-12 gap-4 items-center">
               <div className="col-span-1">
-                <span className="text-sm text-gray-700">{product.id}</span>
+                <span className="text-sm text-gray-700 font-medium">{product.id}</span>
               </div>
               <div className="col-span-5">
                 <span className="text-sm text-gray-700">{product.name}</span>
               </div>
               <div className="col-span-4">
-                <div className="w-full bg-gray-100 rounded-full h-2">
-                  <div className={`${product.color} h-2 rounded-full`} style={{ width: `${product.percentage}%` }}></div>
+                <div className="w-full bg-gray-100 rounded-full h-3">
+                  <div className={`${product.color} h-3 rounded-full`} style={{ width: `${product.percentage}%` }}></div>
                 </div>
               </div>
               <div className="col-span-2">

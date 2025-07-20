@@ -38,15 +38,15 @@ import {
 } from "@/components/ui/alert";
 
 const CATEGORIES = [
-  'Drones',
-  'Cameras',
-  'Smartphones',
-  'Computers',
-  'Audio',
-  'Gaming',
-  'Smart Home',
-  'Wearables',
-  'Other'
+  'Seeds',
+  'Fertilizers',
+  'Pesticides',
+  'Farming Tools',
+  'Irrigation Equipment',
+  'Harvesting Equipment',
+  'Organic Products',
+  'Animal Feed',
+  'Agricultural Machinery'
 ];
 
 const AddProduct = () => {

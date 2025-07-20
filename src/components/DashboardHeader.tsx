@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthContext } from '@/lib/AuthProvider';
-import { GoogleTranslateButton } from './GoogleTranslateButton';
 
 const DashboardHeader: React.FC = () => {
   const location = useLocation();
@@ -46,9 +45,8 @@ const DashboardHeader: React.FC = () => {
   return (
     <header className="w-full h-16 px-6 border-b flex items-center justify-between bg-white">
       {/* Left section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center">
         <h1 className="text-3xl font-bold text-gray-900">{getPageTitle()}</h1>
-        <GoogleTranslateButton />
       </div>
 
       {/* Center section */}
@@ -57,7 +55,7 @@ const DashboardHeader: React.FC = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500" size={20} />
           <Input 
             type="text"
-            placeholder="Search here..."
+            placeholder="Search crops, weather, market prices..."
             className="w-full pl-12 pr-4 py-3 text-sm bg-gray-50 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
           />
         </div>
@@ -67,7 +65,7 @@ const DashboardHeader: React.FC = () => {
       <div className="flex items-center gap-6">
         <Button variant="ghost" className="relative p-2">
           <Bell size={18} className="text-gray-700" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
         </Button>
 
         <div className="flex items-center gap-3">

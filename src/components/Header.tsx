@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { PhoneCall, Mail, MapPin, Tractor, Wheat, Sprout, Cpu, Users, BookOpen } from 'lucide-react';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -17,12 +18,51 @@ const Header = () => {
   const { user } = useAuth();
 
   return (
-    <header className="w-full px-8 py-6 bg-white">
+    <>
+      {/* Top Info Bar */}
+      <div className="w-full bg-blue-600 text-white py-2 px-8">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2">
+              <PhoneCall className="w-4 h-4" />
+              <span className="text-sm">+9779868597841</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Mail className="w-4 h-4" />
+              <span className="text-sm">info@krishakai.com</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <MapPin className="w-4 h-4" />
+              <span className="text-sm">Kathmandu, Nepal</span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <a href="#" className="text-sm hover:text-blue-200 transition-colors">Farmer Support</a>
+            <a href="#" className="text-sm hover:text-blue-200 transition-colors">Agricultural News</a>
+            <a href="#" className="text-sm hover:text-blue-200 transition-colors">NPR ₨</a>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Header */}
+      <header className="w-full px-8 py-6 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-12">
-          <h1 className="text-xl font-extrabold text-zinc-900 tracking-[4px] uppercase">
-            KRISHAK AI
-          </h1>
+            <div className="flex items-center gap-3" onClick={() => navigate('/')} style={{cursor: 'pointer'}}>
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-green-600 rounded-lg flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                <Tractor className="w-6 h-6 text-white absolute" />
+                <Wheat className="w-4 h-4 text-white absolute bottom-1 right-1" />
+                <Sprout className="w-3 h-3 text-white absolute top-1 right-1" />
+              </div>
+          <div>
+            <h1 className="text-xl font-extrabold text-zinc-900 tracking-[4px] uppercase">
+              KRISHAK AI
+            </h1>
+            <p className="text-xs text-zinc-700 font-medium mt-1">
+                  Empowering Nepali farmers with modern agricultural technology
+            </p>
+              </div>
+          </div>
           <nav className="hidden md:flex items-center space-x-8">
             <NavigationMenu>
               <NavigationMenuList>
@@ -36,7 +76,7 @@ const Header = () => {
                         <div className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md">
                           <h3 className="text-lg font-bold">Our Story</h3>
                           <p className="text-sm text-muted-foreground font-medium">
-                            Who we are and our journey
+                            Founded by Sanjok Gharti, Krishak AI is dedicated to transforming agriculture in Nepal and beyond through technology and innovation.
                           </p>
                         </div>
                       </NavigationMenuLink>
@@ -47,15 +87,76 @@ const Header = () => {
                          >
                            <h3 className="text-lg font-bold">Social Impact</h3>
                            <p className="text-sm text-muted-foreground font-medium">
-                             Our approach and impact
+                              How we're improving agricultural sustainability and farmer livelihoods across Nepal
                            </p>
                          </div>
                        </NavigationMenuLink>
                       <NavigationMenuLink asChild>
-                        <div className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md">
-                          <h3 className="text-lg font-bold">Career</h3>
+                          <div 
+                            className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md"
+                            onClick={() => navigate('/team')}
+                          >
+                            <h3 className="text-lg font-bold">Our Team</h3>
+                            <p className="text-sm text-muted-foreground font-medium">
+                              Meet the experts and innovators behind Krishak AI
+                            </p>
+                          </div>
+                        </NavigationMenuLink>
+                      </div>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                </NavigationMenuList>
+              </NavigationMenu>
+              
+              <NavigationMenu>
+                <NavigationMenuList>
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger className="text-zinc-900 font-bold hover:text-zinc-600 transition-colors bg-transparent text-base">
+                      Services
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <div className="grid gap-3 p-6 w-[400px]">
+                        <NavigationMenuLink asChild>
+                          <div 
+                            className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md"
+                            onClick={() => navigate('/services')}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Tractor className="h-5 w-5 text-green-600" />
+                              <h3 className="text-lg font-bold">Our Services</h3>
+                            </div>
+                            <p className="text-sm text-muted-foreground font-medium">
+                              Comprehensive agricultural solutions for Nepali farmers
+                            </p>
+                          </div>
+                        </NavigationMenuLink>
+                        
+                        <NavigationMenuLink asChild>
+                          <div 
+                            className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md"
+                            onClick={() => navigate('/technology')}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Cpu className="h-5 w-5 text-blue-600" />
+                              <h3 className="text-lg font-bold">Our Technology</h3>
+                            </div>
+                            <p className="text-sm text-muted-foreground font-medium">
+                              Discover the innovation behind Krishak AI's agricultural tools
+                            </p>
+                          </div>
+                        </NavigationMenuLink>
+                        
+                        <NavigationMenuLink asChild>
+                          <div 
+                            className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md"
+                            onClick={() => navigate('/success-stories')}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Users className="h-5 w-5 text-amber-600" />
+                              <h3 className="text-lg font-bold">Success Stories</h3>
+                            </div>
                           <p className="text-sm text-muted-foreground font-medium">
-                            Join our team
+                              See how real farmers are transforming their practices with our solutions
                           </p>
                         </div>
                       </NavigationMenuLink>
@@ -64,22 +165,14 @@ const Header = () => {
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
-            <a href="#" className="text-zinc-900 font-bold hover:text-zinc-600 transition-colors text-base">
-              Features
-            </a>
-            <a href="#" className="text-zinc-900 font-bold hover:text-zinc-600 transition-colors text-base">
+              
+              <a 
+                onClick={() => navigate('/services')}
+                className="text-zinc-900 font-bold hover:text-zinc-600 transition-colors text-base cursor-pointer"
+              >
               Products
             </a>
-            <a 
-              href="/team" 
-              className="text-zinc-900 font-bold hover:text-zinc-600 transition-colors text-base"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('/team');
-              }}
-            >
-              Team
-            </a>
+              
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
@@ -90,9 +183,12 @@ const Header = () => {
                     <div className="grid gap-3 p-6 w-[400px]">
                       <NavigationMenuLink asChild>
                         <div className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md">
-                          <h3 className="text-lg font-bold">Dealership Program</h3>
+                            <div className="flex items-center gap-2">
+                              <BookOpen className="h-5 w-5 text-green-600" />
+                              <h3 className="text-lg font-bold">Farming Knowledge Base</h3>
+                            </div>
                           <p className="text-sm text-muted-foreground font-medium">
-                            Partner with us
+                              Agricultural guides, crop calendars and farming best practices
                           </p>
                         </div>
                       </NavigationMenuLink>
@@ -100,7 +196,7 @@ const Header = () => {
                         <div className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md">
                           <h3 className="text-lg font-bold">Help Center</h3>
                           <p className="text-sm text-muted-foreground font-medium">
-                            Get answers on your Veda's queries
+                              Get support for all your Krishak AI platform questions
                           </p>
                         </div>
                       </NavigationMenuLink>
@@ -109,17 +205,17 @@ const Header = () => {
                           className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md"
                           onClick={() => navigate('/blog')}
                         >
-                          <h3 className="text-lg font-bold">Blog</h3>
+                            <h3 className="text-lg font-bold">Agricultural Blog</h3>
                           <p className="text-sm text-muted-foreground font-medium">
-                            News, articles, updates and stories
+                              Latest farming news, crop insights and success stories
                           </p>
                         </div>
                       </NavigationMenuLink>
                       <NavigationMenuLink asChild>
                         <div className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md">
-                          <h3 className="text-lg font-bold">FAQ</h3>
+                            <h3 className="text-lg font-bold">Farming FAQ</h3>
                           <p className="text-sm text-muted-foreground font-medium">
-                            Our most asked questions answered
+                              Common agricultural questions answered by experts
                           </p>
                         </div>
                       </NavigationMenuLink>
@@ -138,17 +234,25 @@ const Header = () => {
                     <div className="grid gap-3 p-6 w-[400px]">
                       <NavigationMenuLink asChild>
                         <div className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md">
-                          <h3 className="text-lg font-bold">Contact Support</h3>
+                            <h3 className="text-lg font-bold">Farmer Support</h3>
+                            <p className="text-sm text-muted-foreground font-medium">
+                              24/7 agricultural assistance for all your farming needs
+                            </p>
+                          </div>
+                        </NavigationMenuLink>
+                        <NavigationMenuLink asChild>
+                          <div className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md">
+                            <h3 className="text-lg font-bold">Business Inquiries</h3>
                           <p className="text-sm text-muted-foreground font-medium">
-                            Reach out to support team
+                              Partnership opportunities and B2B solutions
                           </p>
                         </div>
                       </NavigationMenuLink>
                       <NavigationMenuLink asChild>
                         <div className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md">
-                          <h3 className="text-lg font-bold">Contact Us</h3>
+                            <h3 className="text-lg font-bold">Regional Offices</h3>
                           <p className="text-sm text-muted-foreground font-medium">
-                            Reach out to Us
+                              Find Krishak AI representatives in your district
                           </p>
                         </div>
                       </NavigationMenuLink>
@@ -161,8 +265,17 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-6">
+            <div className="hidden md:block">
+              <Button 
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50 mr-4"
+                onClick={() => user ? navigate('/dashboard') : navigate('/signup')}
+              >
+                Register Farm
+              </Button>
+            </div>
           <Button 
-            className="bg-zinc-900 hover:bg-zinc-800 text-white px-8 py-3 rounded-lg font-bold text-base shadow-lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold text-base shadow-lg"
             onClick={() => user ? navigate('/dashboard') : navigate('/login')}
           >
             {user ? 'Dashboard' : 'Login'}
@@ -170,6 +283,7 @@ const Header = () => {
         </div>
       </div>
     </header>
+    </>
   );
 };
 

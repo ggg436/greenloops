@@ -1,5 +1,5 @@
 import React from 'react';
-import { Twitter, Facebook, Instagram, Github, MapPin, Mail } from 'lucide-react';
+import { Twitter, Facebook, Instagram, Github, MapPin, Mail, PhoneCall } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/Header';
@@ -7,7 +7,7 @@ import Header from '@/components/Header';
 const Team = () => {
   const teamMembers = [
     {
-      name: "Dr. Rajesh Kumar",
+      name: "Member 1",
       role: "Founder & CEO",
       bio: "Agricultural scientist with 15+ years of experience in sustainable farming and crop optimization.",
       image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face",
@@ -18,7 +18,7 @@ const Team = () => {
       }
     },
     {
-      name: "Priya Sharma",
+      name: "Member 2",
       role: "Lead Data Scientist",
       bio: "AI/ML expert specializing in predictive analytics for crop yield and disease detection systems.",
       image: "https://images.unsplash.com/photo-1494790108755-2616b612b1e5?w=150&h=150&fit=crop&crop=face",
@@ -29,7 +29,7 @@ const Team = () => {
       }
     },
     {
-      name: "Arjun Patel",
+      name: "Member 3",
       role: "Head of Engineering",
       bio: "Full-stack developer passionate about building scalable agricultural technology solutions.",
       image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
@@ -40,7 +40,7 @@ const Team = () => {
       }
     },
     {
-      name: "Meera Singh",
+      name: "Member 4",
       role: "Product Manager",
       bio: "Product strategist focused on user experience and farmer-centric feature development.",
       image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
@@ -51,7 +51,7 @@ const Team = () => {
       }
     },
     {
-      name: "Vikram Reddy",
+      name: "Member 5",
       role: "Agricultural Advisor",
       bio: "Field expert with deep knowledge of traditional and modern farming practices across India.",
       image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
@@ -62,7 +62,7 @@ const Team = () => {
       }
     },
     {
-      name: "Anita Gupta",
+      name: "Member 6",
       role: "Marketing Director",
       bio: "Brand strategist helping farmers discover and adopt innovative agricultural technologies.",
       image: "https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?w=150&h=150&fit=crop&crop=face",
@@ -73,7 +73,7 @@ const Team = () => {
       }
     },
     {
-      name: "Rohit Joshi",
+      name: "Member 7",
       role: "Business Development",
       bio: "Partnership specialist connecting farmers with technology solutions and market opportunities.",
       image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
@@ -84,7 +84,7 @@ const Team = () => {
       }
     },
     {
-      name: "Kavitha Nair",
+      name: "Member 8",
       role: "UX Designer",
       bio: "Design expert creating intuitive interfaces that make complex agricultural data accessible.",
       image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
@@ -126,15 +126,17 @@ const Team = () => {
         <div className="max-w-7xl mx-auto px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {teamMembers.map((member, index) => (
-              <Card key={index} className="bg-white hover:shadow-lg transition-shadow duration-300">
+              <Card key={index} className="bg-white hover:shadow-lg transition-shadow">
                 <CardContent className="p-6 text-center">
                   {/* Profile Image */}
                   <div className="mb-4">
-                    <img
-                      src={member.image}
-                      alt={member.name}
-                      className="w-20 h-20 rounded-full mx-auto object-cover"
-                    />
+                    <div
+                      className="w-20 h-20 rounded-full mx-auto bg-gray-200 flex items-center justify-center"
+                    >
+                      <span className="text-gray-500 font-bold text-lg">
+                        {member.name.split(' ')[1]}
+                      </span>
+                    </div>
                   </div>
                   
                   {/* Member Info */}
@@ -206,11 +208,11 @@ const Team = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="flex items-center justify-center space-x-3">
               <Mail className="h-6 w-6 text-blue-600" />
-              <span className="text-gray-700">contact@drkrishak.com</span>
+              <a href="mailto:info@krishakai.com" className="text-gray-700 hover:text-blue-600 transition-colors">info@krishakai.com</a>
             </div>
             <div className="flex items-center justify-center space-x-3">
-              <MapPin className="h-6 w-6 text-blue-600" />
-              <span className="text-gray-700">Bangalore, Karnataka, India</span>
+              <PhoneCall className="h-6 w-6 text-blue-600" />
+              <span className="text-gray-700">+9779868597841</span>
             </div>
           </div>
         </div>

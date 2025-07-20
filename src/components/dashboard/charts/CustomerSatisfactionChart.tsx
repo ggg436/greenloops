@@ -34,11 +34,11 @@ export const CustomerSatisfactionChart = () => {
           </select>
         </div>
       </CardHeader>
-      <CardContent className="px-2 pb-0 flex-1 flex flex-col">
-        <ResponsiveContainer width="99%" height={260}>
+      <CardContent className="px-2 pb-4 flex-1 flex flex-col">
+        <ResponsiveContainer width="99%" height={300}>
           <AreaChart 
             data={translatedData}
-            margin={{ top: 10, right: 10, bottom: 2, left: 0 }}
+            margin={{ top: 10, right: 10, bottom: 20, left: 0 }}
           >
             <defs>
               <linearGradient id="colorLastMonth" x1="0" y1="0" x2="0" y2="1">
@@ -54,14 +54,16 @@ export const CustomerSatisfactionChart = () => {
             <XAxis 
               dataKey="translatedMonth" 
               axisLine={false} 
-              tickLine={false} 
+              tickLine={false}
               className="text-sm text-gray-600"
+              tick={{ fontSize: 12 }}
               dy={10}
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
               className="text-sm text-gray-600"
+              tick={{ fontSize: 12 }}
               domain={[0, 100]}
               width={30}
             />
@@ -96,10 +98,10 @@ export const CustomerSatisfactionChart = () => {
               name={t('dashboard.thisMonth')}
             />
             <Legend 
-              wrapperStyle={{ paddingTop: '8px' }}
+              wrapperStyle={{ paddingTop: '15px' }}
               iconType="circle"
               verticalAlign="bottom"
-              height={25}
+              height={40}
             />
           </AreaChart>
         </ResponsiveContainer>

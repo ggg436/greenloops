@@ -4,27 +4,27 @@ import { Twitter, Facebook, Instagram, Github } from 'lucide-react';
 const TeamSection = () => {
   const teamMembers = [
     {
-      name: "JOHN FARMER",
+      name: "Member 1",
       role: "CEO & Founder",
-      avatar: "JF",
+      avatar: "M1",
       gradient: "bg-gradient-to-br from-orange-400 to-pink-500"
     },
     {
-      name: "SARAH GREENE",
+      name: "Member 2",
       role: "CTO",
-      avatar: "SG",
+      avatar: "M2",
       gradient: "bg-gradient-to-br from-green-400 to-blue-500"
     },
     {
-      name: "MIKE HARVEST",
+      name: "Member 3",
       role: "Head of Agriculture",
-      avatar: "MH",
+      avatar: "M3",
       gradient: "bg-gradient-to-br from-blue-500 to-purple-600"
     },
     {
-      name: "ANNA SEEDS",
+      name: "Member 4",
       role: "Lead Data Scientist",
-      avatar: "AS",
+      avatar: "M4",
       gradient: "bg-gradient-to-br from-yellow-400 to-orange-500"
     }
   ];

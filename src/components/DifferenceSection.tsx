@@ -1,51 +1,96 @@
 import React from 'react';
-import { Layers, MessageSquare, Shield, Globe, Shuffle, HelpCircle } from 'lucide-react';
+import { 
+  CloudRain, 
+  Wheat, 
+  BarChart2, 
+  ShoppingCart, 
+  LineChart 
+} from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+
+// Create a custom soil icon since it's not available in lucide-react
+const SoilIcon = (props) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="24" 
+    height="24" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    {...props}
+  >
+    <path d="M2 19h20" />
+    <path d="M4 15h16" />
+    <path d="M6 11c1.5 0 3 .5 3 2-2 0-3 .5-3 2" />
+    <path d="M10 11c1.5 0 3 .5 3 2-2 0-3 .5-3 2" />
+    <path d="M14 11c1.5 0 3 .5 3 2-2 0-3 .5-3 2" />
+    <path d="M18 11c1.5 0 3 .5 3 2-2 0-3 .5-3 2" />
+  </svg>
+);
+
+// Define pattern styles
+const patternStyles = `
+  .bg-pattern {
+    background-color: #f9fafb;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e5e7eb' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+`;
 
 const DifferenceSection = () => {
   const features = [
     {
-      icon: Layers,
-      title: "AI-Powered Question Generation",
-      description: "Experience limitless, AI-driven question creation across diverse subjects and topics."
+      icon: SoilIcon,
+      title: "Smart Soil Analysis",
+      description: "Real-time soil health monitoring and recommendations tailored to your farm's specific soil composition."
     },
     {
-      icon: MessageSquare,
-      title: "Customizable Question Sets",
-      description: "Tailor your learning with fully customizable question banks for any need."
+      icon: CloudRain,
+      title: "Precision Weather Forecasting",
+      description: "Hyperlocal weather predictions to plan irrigation, planting, and harvesting with confidence."
     },
     {
-      icon: Shield,
-      title: "Learning Progress Insights",
-      description: "Monitor your learning journey in real-time with intuitive progress tracking tools."
+      icon: Wheat,
+      title: "Crop Disease Detection",
+      description: "Early identification of crop diseases and pests through AI image analysis, saving crops before it's too late."
     },
     {
-      icon: Globe,
-      title: "Online Exam Solutions",
-      description: "Streamline assessments with secure, efficient, and fully online exam capabilities."
+      icon: BarChart2,
+      title: "Yield Prediction Tools",
+      description: "Advanced analytics to forecast harvest yields and optimize crop planning for maximum productivity."
     },
     {
-      icon: Shuffle,
-      title: "Random/Surprise Question Generation",
-      description: "Keep your mind sharp with unpredictable, AI-generated questions on the fly."
+      icon: ShoppingCart,
+      title: "Marketplace Direct Access",
+      description: "Sell your produce directly to consumers and businesses, eliminating middlemen and increasing profits."
     },
     {
-      icon: HelpCircle,
-      title: "Instant Doubt Resolution",
-      description: "Get immediate answers to your questions with our 24/7 instant doubt resolution feature."
+      icon: LineChart,
+      title: "Farm Performance Tracking",
+      description: "Monitor all aspects of your farm's performance with easy-to-understand reports and recommendations."
     }
   ];
 
   return (
-    <section className="py-20 px-8 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-20 px-8 bg-pattern relative">
+      {/* Add pattern styles */}
+      <style dangerouslySetInnerHTML={{ __html: patternStyles }} />
+      
+      {/* Diagonal color band */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -left-1/4 -right-1/4 h-full bg-gradient-to-r from-blue-50 via-blue-100 to-blue-50 transform -rotate-6"></div>
+      </div>
+      
+      <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            What Makes QuestionBank.AI Different?
+            Why Choose Krishak AI?
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            QuestionBank.AI stands out with its AI-driven, customizable question generation and 
-            seamless online exam solutions, redefining modern learning and assessment.
+            Krishak AI combines cutting-edge technology with deep agricultural expertise to help Nepali 
+            farmers increase yields, reduce costs, and farm more sustainably.
           </p>
         </div>
 

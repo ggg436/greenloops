@@ -21,7 +21,7 @@ export const CropDistributionChart = () => {
   }));
 
   return (
-    <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm">
+    <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm h-full">
       <CardHeader className="pb-3 px-4 pt-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-zinc-900">{t('chart.cropDistribution')}</CardTitle>
@@ -32,16 +32,16 @@ export const CropDistributionChart = () => {
           </select>
         </div>
       </CardHeader>
-      <CardContent className="px-2 pb-4">
-        <div className="w-full" style={{ height: '260px' }}>
+      <CardContent className="px-2 pb-6">
+        <div className="w-full" style={{ height: '280px' }}>
           <ResponsiveContainer width="99%" height="100%">
             <PieChart>
               <Pie
                 data={translatedData}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={90}
+                innerRadius={65}
+                outerRadius={95}
                 paddingAngle={5}
                 dataKey="value"
                 nameKey="name"
@@ -62,7 +62,7 @@ export const CropDistributionChart = () => {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-2 space-y-1 px-2">
+        <div className="mt-4 space-y-2 px-4">
           {translatedData.map((crop, index) => (
             <div key={index} className="flex items-center justify-between">
               <div className="flex items-center">

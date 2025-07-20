@@ -34,12 +34,12 @@ export const TargetVsRealityChart = () => {
           </select>
         </div>
       </CardHeader>
-      <CardContent className="px-2 pb-0 flex-1 flex flex-col">
-        <ResponsiveContainer width="99%" height={260}>
+      <CardContent className="px-2 pb-4 flex-1 flex flex-col">
+        <ResponsiveContainer width="99%" height={300}>
           <BarChart 
             data={translatedData} 
             barCategoryGap={20}
-            margin={{ top: 10, right: 10, bottom: 10, left: 0 }}
+            margin={{ top: 10, right: 10, bottom: 20, left: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis 
@@ -47,14 +47,14 @@ export const TargetVsRealityChart = () => {
               axisLine={false} 
               tickLine={false} 
               className="text-sm text-gray-600"
-              tick={{ fontSize: 10 }}
+              tick={{ fontSize: 12 }}
               dy={10}
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
               className="text-sm text-gray-600"
-              tick={{ fontSize: 10 }}
+              tick={{ fontSize: 12 }}
               width={30}
             />
             <Tooltip 
@@ -81,10 +81,10 @@ export const TargetVsRealityChart = () => {
               barSize={15}
             />
             <Legend 
-              wrapperStyle={{ paddingTop: '8px' }}
+              wrapperStyle={{ paddingTop: '15px' }}
               iconType="circle"
               verticalAlign="bottom"
-              height={25}
+              height={40}
             />
           </BarChart>
         </ResponsiveContainer>

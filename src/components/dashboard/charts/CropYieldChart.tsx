@@ -31,7 +31,7 @@ export const CropYieldChart = () => {
   }));
 
   return (
-    <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm">
+    <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
       <CardHeader className="pb-3 px-4 pt-4">
         <div className="flex items-center justify-between">
           <div>
@@ -49,9 +49,9 @@ export const CropYieldChart = () => {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="px-2 pb-4">
-        <div className="w-full" style={{ height: '300px' }}>
-          <ResponsiveContainer width="99%" height="100%">
+      <CardContent className="px-2 pb-4 flex-1 flex flex-col">
+        <div className="w-full flex-1">
+          <ResponsiveContainer width="99%" height={320}>
             <LineChart 
               data={translatedData}
               margin={{ top: 10, right: 10, bottom: 20, left: 0 }}
@@ -62,12 +62,14 @@ export const CropYieldChart = () => {
                 axisLine={false} 
                 tickLine={false} 
                 className="text-sm text-gray-600"
+                tick={{ fontSize: 12 }}
                 dy={10}
               />
               <YAxis 
                 axisLine={false} 
                 tickLine={false} 
                 className="text-sm text-gray-600"
+                tick={{ fontSize: 12 }}
                 width={30}
               />
               <Tooltip 
@@ -91,7 +93,7 @@ export const CropYieldChart = () => {
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-2 flex items-center">
+        <div className="mt-4 flex items-center">
           <div className="text-sm text-gray-600">{t('months.jun')} 2021</div>
           <div className="ml-2 text-lg font-semibold text-zinc-900">{formatCurrency(45591)}</div>
         </div>

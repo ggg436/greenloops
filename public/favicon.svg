@@ -1,0 +1,30 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="6" fill="url(#paint0_linear)" />
+  
+  <!-- Tractor -->
+  <path d="M22 18H20V16H18V14H12V16H10V18H7V21H8V23H10V21H14V23H16V21H22V18Z" fill="white"/>
+  
+  <!-- Wheels -->
+  <circle cx="9" cy="21" r="2" fill="#333"/>
+  <circle cx="9" cy="21" r="1" fill="#666"/>
+  <circle cx="15" cy="21" r="2" fill="#333"/>
+  <circle cx="15" cy="21" r="1" fill="#666"/>
+  
+  <!-- Wheat Stalks -->
+  <path d="M23 10L24 8L25 10L24 12L23 10Z" fill="#FFD700"/>
+  <path d="M25 9L26 7L27 9L26 11L25 9Z" fill="#FFD700"/>
+  <path d="M21 11L22 9L23 11L22 13L21 11Z" fill="#FFD700"/>
+  <rect x="23.5" y="10" width="1" height="12" fill="#FFD700"/>
+  
+  <!-- Sprout -->
+  <path d="M8 14C8 14 6 12 8 10C10 12 8 14 8 14Z" fill="#4CAF50"/>
+  <path d="M10 12C10 12 12 10 10 8C8 10 10 12 10 12Z" fill="#4CAF50"/>
+  <rect x="8.5" y="11" width="1" height="7" fill="#4CAF50"/>
+  
+  <defs>
+    <linearGradient id="paint0_linear" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#10b981"/>
+    </linearGradient>
+  </defs>
+</svg> 

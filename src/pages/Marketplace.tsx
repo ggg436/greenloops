@@ -193,7 +193,7 @@ const Marketplace = () => {
             {/* Logo */}
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 bg-red-400 rounded" />
-              <h1 className="text-lg font-semibold text-gray-800">What a Market!</h1>
+              <h1 className="text-lg font-semibold text-gray-800">Marketplace</h1>
             </div>
 
             {/* Search bar */}
@@ -268,36 +268,35 @@ const Marketplace = () => {
           </div>
 
           {/* Navigation row */}
-          <div className="flex items-center gap-6 pt-4">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-gray-400" />
-              <span className="text-sm text-gray-800">California</span>
+          <div className="flex items-center justify-between pt-4">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-800">Nepal</span>
+              </div>
+
+              <button className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-semibold">
+                <Filter className="w-4 h-4" />
+                <span>Categories</span>
+              </button>
+
+              <nav className="flex items-center gap-6">
+                <button className="text-sm text-gray-800 hover:text-blue-500">Best Sellers</button>
+                <button className="text-sm text-gray-800 hover:text-blue-500">New Releases</button>
+                <button className="text-sm text-gray-800 hover:text-blue-500">Seeds</button>
+                <button className="text-sm text-gray-800 hover:text-blue-500">Fertilizers</button>
+                <button className="text-sm text-gray-800 hover:text-blue-500">Tools</button>
+                <button className="text-sm text-gray-800 hover:text-blue-500">Equipments</button>
+                <button className="text-sm text-gray-800 hover:text-blue-500">Pesticides</button>
+                <button className="text-sm text-gray-800 hover:text-blue-500">Irrigation</button>
+              </nav>
             </div>
-
-            <button className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-semibold">
-              <Filter className="w-4 h-4" />
-              <span>Categories</span>
-            </button>
-
-            <nav className="flex items-center gap-6">
-              <button className="text-sm text-gray-800 hover:text-blue-500">Best Sellers</button>
-              <button className="text-sm text-gray-800 hover:text-blue-500">New Releases</button>
-              <button className="text-sm text-gray-800 hover:text-blue-500">Books</button>
-              <button className="text-sm text-gray-800 hover:text-blue-500">Computers</button>
-              <button className="text-sm text-gray-800 hover:text-blue-500">Fashion</button>
-              <button className="text-sm text-gray-800 hover:text-blue-500">Health</button>
-              <button className="text-sm text-gray-800 hover:text-blue-500">Pharmacy</button>
-              <button className="text-sm text-gray-800 hover:text-blue-500">Toys & Games</button>
-            </nav>
-
+            
             <button 
               onClick={() => user ? navigate('/dashboard/marketplace/add-product') : navigate('/login')}
-              className="text-sm bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors"
+              className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
             >
               Add Product
-            </button>
-            <button className="ml-4 text-sm text-gray-800 hover:text-blue-500">
-              Become a seller
             </button>
           </div>
         </div>
@@ -364,11 +363,11 @@ const Marketplace = () => {
               </div>
             </div>
 
-            {/* Features filter */}
+            {/* Product Type filter */}
             <div className="mb-8">
-              <h3 className="font-semibold text-gray-800 mb-4">Quadcopter Features</h3>
+              <h3 className="font-semibold text-gray-800 mb-4">Product Type</h3>
               <div className="space-y-3">
-                {['App-Controlled', 'Obstacle Avoidance', 'Video Downlink Capable', 'Wi-Fi'].map((feature) => (
+                {['Organic', 'Non-GMO', 'Certified', 'Local', 'Hybrid'].map((feature) => (
                   <label key={feature} className="flex items-center gap-2">
                     <input type="checkbox" className="w-4 h-4 border border-gray-400 rounded" />
                     <span className="text-sm text-gray-800">{feature}</span>
@@ -377,11 +376,11 @@ const Marketplace = () => {
               </div>
             </div>
 
-            {/* Resolution filter */}
+            {/* Crop Type filter */}
             <div className="mb-8">
-              <h3 className="font-semibold text-gray-800 mb-4">Video Capture Resolution</h3>
+              <h3 className="font-semibold text-gray-800 mb-4">Crop Type</h3>
               <div className="space-y-3">
-                {['4K UHD 2160p', 'FHD 1080p', 'HD 720p'].map((resolution) => (
+                {['Cereals', 'Pulses', 'Oilseeds', 'Vegetables', 'Fruits', 'Cash Crops'].map((resolution) => (
                   <label key={resolution} className="flex items-center gap-2">
                     <input type="checkbox" className="w-4 h-4 border border-gray-400 rounded" />
                     <span className="text-sm text-gray-800">{resolution}</span>
@@ -390,11 +389,11 @@ const Marketplace = () => {
               </div>
             </div>
 
-            {/* Skill level filter */}
+            {/* Farming System filter */}
             <div className="mb-8">
-              <h3 className="font-semibold text-gray-800 mb-4">Operator Skill Level</h3>
+              <h3 className="font-semibold text-gray-800 mb-4">Farming System</h3>
               <div className="space-y-3">
-                {['Beginner', 'Intermediate', 'Expert'].map((level) => (
+                {['Organic', 'Conventional', 'Integrated', 'Precision'].map((level) => (
                   <label key={level} className="flex items-center gap-2">
                     <input type="checkbox" className="w-4 h-4 border border-gray-400 rounded" />
                     <span className="text-sm text-gray-800">{level}</span>
@@ -407,7 +406,7 @@ const Marketplace = () => {
             <div>
               <h3 className="font-semibold text-gray-800 mb-4">Brand</h3>
               <div className="space-y-3">
-                {['DJI', 'Holy Stone', 'Potensic', 'Ruko', 'aovo', 'OXOXO', 'DEERC'].map((brand) => (
+                {['John Deere', 'Mahindra', 'Syngenta', 'Bayer', 'TAFE', 'Sonalika', 'Kubota'].map((brand) => (
                   <label key={brand} className="flex items-center gap-2">
                     <input type="checkbox" className="w-4 h-4 border border-gray-400 rounded" />
                     <span className="text-sm text-gray-800">{brand}</span>

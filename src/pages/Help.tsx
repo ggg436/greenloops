@@ -317,7 +317,7 @@ const Help = () => {
                     <Mail className="w-5 h-5 text-blue-600" />
                     <div>
                       <p className="font-medium">Email Support</p>
-                      <p className="text-sm text-muted-foreground">support@agridash.com</p>
+                      <p className="text-sm text-muted-foreground">info@krishakai.com</p>
                       <p className="text-xs text-muted-foreground">Response within 24 hours</p>
                     </div>
                   </div>
@@ -326,8 +326,8 @@ const Help = () => {
                     <Phone className="w-5 h-5 text-green-600" />
                     <div>
                       <p className="font-medium">Phone Support</p>
-                      <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
-                      <p className="text-xs text-muted-foreground">Mon-Fri 9AM-6PM EST</p>
+                      <p className="text-sm text-muted-foreground">+9779868597841</p>
+                      <p className="text-xs text-muted-foreground">Mon-Fri 9AM-6PM NPT</p>
                     </div>
                   </div>
 

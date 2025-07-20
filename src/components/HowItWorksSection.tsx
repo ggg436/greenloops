@@ -1,35 +1,35 @@
 import React from 'react';
-import { Download, Settings, Star, ChevronRight } from 'lucide-react';
+import { Smartphone, Leaf, CloudSun, ChevronRight } from 'lucide-react';
 
 const HowItWorksSection = () => {
   const steps = [
     {
-      icon: Download,
-      title: "Install the App",
-      description: "Get started by downloading QuestionBank.AI to your device."
+      icon: Smartphone,
+      title: "Download Krishak AI",
+      description: "Get started with a simple download that works even on basic smartphones with limited internet access."
     },
     {
-      icon: Settings,
-      title: "Setup your profile",
-      description: "Personalize your experience by creating your unique learning profile."
+      icon: Leaf,
+      title: "Register Your Farm",
+      description: "Enter your farm details, crop types, and location to receive personalized agricultural insights."
     },
     {
-      icon: Star,
-      title: "Enjoy the features!",
-      description: "Dive into all the powerful AI tools and resources at your fingertips!"
+      icon: CloudSun,
+      title: "Grow Better Crops!",
+      description: "Access AI-powered recommendations, weather forecasts, and connect with the marketplace for better profits."
     }
   ];
 
   return (
-    <section className="py-20 px-8 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+    <section className="py-20 px-8 bg-gradient-to-r from-blue-600 to-green-600 text-white">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">
-            How QuestionBank.AI works?
+            How Krishak AI Works
           </h2>
-          <p className="text-xl text-blue-100 max-w-4xl mx-auto">
-            Customize your learning, practice with AI-generated questions, and track your progress—
-            all in one platform.
+          <p className="text-xl text-white/90 max-w-4xl mx-auto">
+            Get personalized agricultural insights, connect with markets, and improve your yield—
+            designed specifically for Nepali farmers.
           </p>
         </div>
 
@@ -43,7 +43,7 @@ const HowItWorksSection = () => {
                 <h3 className="text-2xl font-bold mb-4">
                   {step.title}
                 </h3>
-                <p className="text-blue-100 leading-relaxed max-w-xs mx-auto">
+                <p className="text-white/90 leading-relaxed max-w-xs mx-auto">
                   {step.description}
                 </p>
               </div>

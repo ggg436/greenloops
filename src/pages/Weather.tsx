@@ -21,6 +21,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuthContext } from '@/lib/AuthProvider';
 
 // API key
 const API_KEY = '98ea5dd81e14e3fa312dbe7cf40c958b';
@@ -72,6 +73,8 @@ const Weather = () => {
   const [searchCity, setSearchCity] = useState<string>('');
   const [city, setCity] = useState<string>('');
   const [tempUnit, setTempUnit] = useState<'metric' | 'imperial'>('metric');
+  const [userLocation, setUserLocation] = useState<string>('');
+  const { user } = useAuthContext();
 
   // Get temperature unit symbol
   const getTempUnitSymbol = () => tempUnit === 'metric' ? 'C' : 'F';
@@ -127,6 +130,10 @@ const Weather = () => {
       setWeatherData(weatherResult);
       setForecastData(forecastResult);
       setCity(weatherResult.name);
+      
+      // Set user location from weather API response
+      setUserLocation(`${weatherResult.name}, ${weatherResult.sys.country}`);
+      
       setLoading(false);
     } catch (error) {
       toast.error('Error fetching weather data');
@@ -161,6 +168,10 @@ const Weather = () => {
       setWeatherData(weatherResult);
       setForecastData(forecastResult);
       setCity(weatherResult.name);
+      
+      // Set user location from weather API response
+      setUserLocation(`${weatherResult.name}, ${weatherResult.sys.country}`);
+      
       setSearchCity('');
       setLoading(false);
     } catch (error) {
@@ -423,12 +434,11 @@ const Weather = () => {
             )}
           </div>
 
-          <Card className="overflow-hidden cursor-pointer rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 animate-slide-in-up">
-            <img src={getCityImageUrl()} alt={city || 'City'} className="w-full h-20 md:h-[120px] object-cover" />
-            <div className="p-3 md:p-4 flex items-center gap-2 md:gap-3 bg-gradient-to-r from-gray-50 to-white">
-              <MapPin className="w-4 h-4 md:w-5 md:h-5 text-gray-500 animate-pulse" />
-              <span className="text-gray-700 text-sm md:text-lg">
-                {weatherData ? `${weatherData.name}, ${weatherData.sys.country}` : 'Loading...'}
+          <Card className="cursor-pointer rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 animate-slide-in-up">
+            <div className="p-5 md:p-6 flex items-center gap-3 md:gap-4 bg-gradient-to-r from-blue-50 to-white">
+              <MapPin className="w-5 h-5 md:w-6 md:h-6 text-blue-500 animate-pulse" />
+              <span className="text-gray-800 text-base md:text-xl font-medium">
+                {userLocation || 'Loading location...'}
               </span>
             </div>
           </Card>
@@ -484,7 +494,7 @@ const Weather = () => {
                 °F
               </button>
               <Avatar className="cursor-pointer w-10 h-10 md:w-12 md:h-12 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110">
-                <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face&auto=format" />
+                <AvatarImage src={user?.photoURL || "/sanjok.png"} alt={user?.displayName || "User"} />
               </Avatar>
             </div>
           </div>

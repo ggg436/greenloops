@@ -37,12 +37,12 @@ export const TotalRevenueChart = () => {
           </select>
         </div>
       </CardHeader>
-      <CardContent className="px-2 pb-0 flex-1 flex flex-col">
-        <ResponsiveContainer width="99%" height={260}>
+      <CardContent className="px-2 pb-4 flex-1 flex flex-col">
+        <ResponsiveContainer width="99%" height={300}>
           <BarChart 
             data={translatedData} 
             barCategoryGap={20}
-            margin={{ top: 10, right: 10, bottom: 5, left: 0 }}
+            margin={{ top: 10, right: 10, bottom: 20, left: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis 
@@ -50,14 +50,14 @@ export const TotalRevenueChart = () => {
               axisLine={false} 
               tickLine={false} 
               className="text-sm text-gray-600"
-              tick={{ fontSize: 10 }}
+              tick={{ fontSize: 12 }}
               dy={10}
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
               className="text-sm text-gray-600"
-              tick={{ fontSize: 10 }}
+              tick={{ fontSize: 12 }}
               tickFormatter={kFormatter}
               width={30}
             />
@@ -75,10 +75,10 @@ export const TotalRevenueChart = () => {
               }}
             />
             <Legend 
-              wrapperStyle={{ paddingTop: '8px' }}
+              wrapperStyle={{ paddingTop: '15px' }}
               iconType="circle"
               verticalAlign="bottom"
-              height={25}
+              height={40}
               formatter={(value) => {
                 if (value === 'onlineSales') return t('chart.onlineSales');
                 if (value === 'offlineSales') return t('chart.offlineSales');

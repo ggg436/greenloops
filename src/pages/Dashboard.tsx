@@ -11,7 +11,7 @@ import { SalesSummarySection } from '@/components/dashboard/SalesSummarySection'
 const Dashboard = () => {
   return (
     <>
-      <div className="p-6">
+      <div className="pl-4 pr-2 pt-4 pb-2 w-full">
         {/* Sales Summary Section */}
         <SalesSummarySection />
 
@@ -19,13 +19,10 @@ const Dashboard = () => {
         <ChartsSection />
 
         {/* Bottom Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-2 w-full">
           <TransactionsSection />
           <RecentFarmersSection />
         </div>
-
-        {/* Stats Cards */}
-        <StatsCards />
       </div>
     </>
   );

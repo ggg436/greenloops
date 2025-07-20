@@ -9,6 +9,7 @@ import { useSidebar } from '@/context/SidebarContext';
 const DashboardLayout = () => {
   const location = useLocation();
   const isMarketplace = location.pathname.includes('/marketplace');
+  const isWeather = location.pathname.includes('/weather');
   const { isCollapsed } = useSidebar();
   
   return (
@@ -16,10 +17,14 @@ const DashboardLayout = () => {
       <AppSidebar />
       
       {/* Main content with left padding to accommodate fixed sidebar */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isCollapsed ? 'ml-[90px]' : 'ml-[320px]'}`}>
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${isCollapsed ? 'ml-[99px]' : 'ml-[270px]'}`}>
         {/* Only show the header when NOT on marketplace page */}
         {!isMarketplace && <DashboardHeader />}
-        <main className={`flex-1 transition-all duration-300 ${isMarketplace ? 'mt-0' : ''} relative`}>
+        <main className={`flex-1 transition-all duration-300 ${isMarketplace ? 'mt-0' : ''} relative ${
+          isWeather 
+            ? 'scale-75 origin-top-left w-[130%]' 
+            : 'scale-90 origin-top-left w-[110%]'
+        }`}>
           <Outlet />
         </main>
       </div>

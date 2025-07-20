@@ -21,6 +21,9 @@ import Team from "./pages/Team";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import SocialImpact from "./pages/SocialImpact";
+import OurServices from "./pages/OurServices";
+import Technology from "./pages/Technology";
+import SuccessStories from "./pages/SuccessStories";
 import DashboardLayout from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
@@ -46,6 +49,9 @@ const App = () => (
             <Route path="/social-impact" element={<SocialImpact />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/services" element={<OurServices />} />
+            <Route path="/technology" element={<Technology />} />
+            <Route path="/success-stories" element={<SuccessStories />} />
             
             {/* Auth Routes */}
             <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
