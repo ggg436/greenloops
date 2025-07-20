@@ -63,22 +63,7 @@ const HeroSection = () => {
                       animation: 'float 18s infinite ease-in-out' }}></div>
       </div>
       
-      {/* Large full-width agriculture image at the top */}
-      <div className="w-full h-[400px] relative overflow-hidden mb-12">
-        <img 
-          src="https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
-          alt="Modern Agriculture Technology"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 flex items-end">
-          <div className="text-white p-12 max-w-3xl">
-            <h2 className="text-4xl font-bold mb-4">Transforming Agriculture with Technology</h2>
-            <p className="text-lg opacity-90">Advanced AI solutions for modern farming practices</p>
-          </div>
-        </div>
-      </div>
-      
-      <div className="max-w-7xl mx-auto px-6 py-12 md:py-16 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 py-20 md:py-28 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left column - Text content */}
           <div className="space-y-8">
