@@ -21,7 +21,7 @@ const Header = () => {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-12">
           <h1 className="text-xl font-extrabold text-zinc-900 tracking-[4px] uppercase">
-            DR. KRISHAK
+            KRISHAK AI
           </h1>
           <nav className="hidden md:flex items-center space-x-8">
             <NavigationMenu>

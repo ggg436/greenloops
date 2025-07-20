@@ -112,7 +112,7 @@ const Help = () => {
 
   const tutorials = [
     {
-      title: "Getting Started with AgriDash",
+      title: "Getting Started with Krishak AI",
       duration: "5 min",
       type: "Video",
       description: "Complete walkthrough of setting up your account and first farm profile",
@@ -143,7 +143,7 @@ const Help = () => {
       title: "Mobile App Usage Guide",
       duration: "6 min",
       type: "Guide",
-      description: "How to use AgriDash on your mobile device for field updates",
+      description: "How to use Krishak AI on your mobile device for field updates",
       level: "Beginner"
     },
     {
@@ -251,7 +251,7 @@ const Help = () => {
                   Tutorials & Guides
                 </CardTitle>
                 <CardDescription>
-                  Step-by-step guides to help you get the most out of AgriDash
+                  Step-by-step guides to help you get the most out of Krishak AI
                 </CardDescription>
               </CardHeader>
               <CardContent>

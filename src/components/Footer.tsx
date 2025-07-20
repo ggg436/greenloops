@@ -18,7 +18,7 @@ const Footer = () => {
         {/* Logo */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-zinc-900">
-            AGRITECH
+            KRISHAK AI
           </h2>
         </div>
 
@@ -31,8 +31,8 @@ const Footer = () => {
             </h3>
             <ul className="space-y-3">
               <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">About</a></li>
-              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Features</a></li>
-              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Works</a></li>
+              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Our Mission</a></li>
+              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Success Stories</a></li>
               <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Career</a></li>
             </ul>
           </div>
@@ -43,8 +43,8 @@ const Footer = () => {
               HELP
             </h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Customer Support</a></li>
-              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Delivery Details</a></li>
+              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Farmer Support</a></li>
+              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">App Training</a></li>
               <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Terms & Conditions</a></li>
               <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Privacy Policy</a></li>
             </ul>
@@ -56,10 +56,10 @@ const Footer = () => {
               RESOURCES
             </h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Free eBooks</a></li>
-              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Development Tutorial</a></li>
-              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">How to - Blog</a></li>
-              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Youtube Playlist</a></li>
+              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Farming Guides</a></li>
+              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Crop Disease Library</a></li>
+              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Knowledge Base</a></li>
+              <li><a href="#" className="text-zinc-600 hover:text-zinc-900 transition-colors">Video Tutorials</a></li>
             </ul>
           </div>
 
@@ -89,11 +89,11 @@ const Footer = () => {
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <h4 className="font-semibold text-zinc-900 text-sm mb-1">CALL US</h4>
-                <p className="text-zinc-600">(239) 555-0108</p>
+                <p className="text-zinc-600">(+977) 98765-43210</p>
               </div>
               <div>
                 <h4 className="font-semibold text-zinc-900 text-sm mb-1">EMAIL US</h4>
-                <p className="text-zinc-600">info@agritech.com</p>
+                <p className="text-zinc-600">info@krishakai.com</p>
               </div>
             </div>
           </div>
@@ -102,7 +102,7 @@ const Footer = () => {
         {/* Bottom Footer */}
         <div className="border-t border-zinc-200 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-zinc-500 text-sm mb-4 md:mb-0">
-            © Copyright 2024. All Rights Reserved
+            © Copyright 2024 Krishak AI. All Rights Reserved
           </p>
           
           {/* Social Links */}

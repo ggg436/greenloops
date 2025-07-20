@@ -28,6 +28,7 @@ import SignUp from "./pages/SignUp";
 import Orders from "./pages/Orders";
 import Checkout from "./pages/Checkout";
 import { AuthProvider, ProtectedRoute, PublicRoute } from "./lib/AuthProvider";
+import { SidebarProvider } from "./context/SidebarContext";
 
 const queryClient = new QueryClient();
 
@@ -35,9 +36,10 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+        <SidebarProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/team" element={<Team />} />
@@ -69,7 +71,8 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
+          </BrowserRouter>
+        </SidebarProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

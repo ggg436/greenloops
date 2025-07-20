@@ -3,39 +3,49 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { Download } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '@/lib/formatters';
 
 const weatherData = [
-  { day: 'Feb', temperature: 25, humidity: 60 },
-  { day: 'Mar', temperature: 27, humidity: 65 },
-  { day: 'Apr', temperature: 23, humidity: 70 },
-  { day: 'May', temperature: 26, humidity: 55 },
-  { day: 'Jun', temperature: 28, humidity: 50 },
-  { day: 'Jul', temperature: 24, humidity: 68 },
-  { day: 'Aug', temperature: 22, humidity: 75 },
-  { day: 'Sep', temperature: 26, humidity: 65 },
-  { day: 'Oct', temperature: 24, humidity: 60 },
-  { day: 'Nov', temperature: 22, humidity: 70 },
-  { day: 'Dec', temperature: 20, humidity: 75 },
-  { day: 'Jan', temperature: 18, humidity: 80 },
+  { day: 'months.feb', temperature: 25, humidity: 60 },
+  { day: 'months.mar', temperature: 27, humidity: 65 },
+  { day: 'months.apr', temperature: 23, humidity: 70 },
+  { day: 'months.may', temperature: 26, humidity: 55 },
+  { day: 'months.jun', temperature: 28, humidity: 50 },
+  { day: 'months.jul', temperature: 24, humidity: 68 },
+  { day: 'months.aug', temperature: 22, humidity: 75 },
+  { day: 'months.sep', temperature: 26, humidity: 65 },
+  { day: 'months.oct', temperature: 24, humidity: 60 },
+  { day: 'months.nov', temperature: 22, humidity: 70 },
+  { day: 'months.dec', temperature: 20, humidity: 75 },
+  { day: 'months.jan', temperature: 18, humidity: 80 },
 ];
 
 export const CropYieldChart = () => {
+  const { t } = useTranslation();
+
+  // Translate month names
+  const translatedData = weatherData.map(item => ({
+    ...item,
+    translatedDay: t(item.day)
+  }));
+
   return (
     <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm">
       <CardHeader className="pb-3 px-4 pt-4">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold text-zinc-900">Crop Yield Report</CardTitle>
+            <CardTitle className="text-lg font-semibold text-zinc-900">{t('chart.cropYield')}</CardTitle>
             <div className="flex items-center space-x-4 mt-2">
-              <button className="px-3 py-1 text-sm bg-gray-50 rounded-lg border border-gray-100">12 Months</button>
-              <button className="px-3 py-1 text-sm text-gray-600">6 Months</button>
-              <button className="px-3 py-1 text-sm text-gray-600">30 Days</button>
-              <button className="px-3 py-1 text-sm text-gray-600">7 Days</button>
+              <button className="px-3 py-1 text-sm bg-gray-50 rounded-lg border border-gray-100">{t('dashboard.12Months')}</button>
+              <button className="px-3 py-1 text-sm text-gray-600">{t('dashboard.6Months')}</button>
+              <button className="px-3 py-1 text-sm text-gray-600">{t('dashboard.30Days')}</button>
+              <button className="px-3 py-1 text-sm text-gray-600">{t('dashboard.7Days')}</button>
             </div>
           </div>
           <Button variant="outline" size="sm" className="border-gray-100 bg-gray-50">
             <Download className="w-4 h-4 mr-2" />
-            Export PDF
+            {t('dashboard.exportPDF')}
           </Button>
         </div>
       </CardHeader>
@@ -43,12 +53,12 @@ export const CropYieldChart = () => {
         <div className="w-full" style={{ height: '300px' }}>
           <ResponsiveContainer width="99%" height="100%">
             <LineChart 
-              data={weatherData}
+              data={translatedData}
               margin={{ top: 10, right: 10, bottom: 20, left: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis 
-                dataKey="day" 
+                dataKey="translatedDay" 
                 axisLine={false} 
                 tickLine={false} 
                 className="text-sm text-gray-600"
@@ -67,6 +77,7 @@ export const CropYieldChart = () => {
                   borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
+                labelFormatter={(label) => label}
               />
               <Line 
                 type="monotone" 
@@ -75,13 +86,14 @@ export const CropYieldChart = () => {
                 strokeWidth={2}
                 dot={{ fill: '#6366f1', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6, fill: '#6366f1' }}
+                name={t('dashboard.temperature')}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
         <div className="mt-2 flex items-center">
-          <div className="text-sm text-gray-600">June 2021</div>
-          <div className="ml-2 text-lg font-semibold text-zinc-900">$45,591</div>
+          <div className="text-sm text-gray-600">{t('months.jun')} 2021</div>
+          <div className="ml-2 text-lg font-semibold text-zinc-900">{formatCurrency(45591)}</div>
         </div>
       </CardContent>
     </Card>

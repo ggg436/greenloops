@@ -1,25 +1,34 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { useTranslation } from 'react-i18next';
 
 const cropDistribution = [
-  { name: 'Wheat', value: 35, color: '#8884d8' },
-  { name: 'Corn', value: 28, color: '#82ca9d' },
-  { name: 'Rice', value: 20, color: '#ffc658' },
-  { name: 'Barley', value: 12, color: '#ff7300' },
-  { name: 'Others', value: 5, color: '#8dd1e1' },
+  { nameKey: 'crops.wheat', value: 35, color: '#8884d8' },
+  { nameKey: 'crops.corn', value: 28, color: '#82ca9d' },
+  { nameKey: 'crops.rice', value: 20, color: '#ffc658' },
+  { nameKey: 'crops.barley', value: 12, color: '#ff7300' },
+  { nameKey: 'crops.others', value: 5, color: '#8dd1e1' },
 ];
 
 export const CropDistributionChart = () => {
+  const { t } = useTranslation();
+
+  // Translate crop names
+  const translatedData = cropDistribution.map(item => ({
+    ...item,
+    name: t(item.nameKey)
+  }));
+
   return (
     <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm">
       <CardHeader className="pb-3 px-4 pt-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-zinc-900">Crop Distribution</CardTitle>
+          <CardTitle className="text-lg font-semibold text-zinc-900">{t('chart.cropDistribution')}</CardTitle>
           <select className="text-sm border border-gray-100 rounded-md px-3 py-1 bg-gray-50">
-            <option>Current Season</option>
-            <option>Last Season</option>
-            <option>Yearly Average</option>
+            <option>{t('dashboard.currentSeason')}</option>
+            <option>{t('dashboard.lastSeason')}</option>
+            <option>{t('dashboard.yearlyAverage')}</option>
           </select>
         </div>
       </CardHeader>
@@ -28,15 +37,16 @@ export const CropDistributionChart = () => {
           <ResponsiveContainer width="99%" height="100%">
             <PieChart>
               <Pie
-                data={cropDistribution}
+                data={translatedData}
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
                 outerRadius={90}
                 paddingAngle={5}
                 dataKey="value"
+                nameKey="name"
               >
-                {cropDistribution.map((entry, index) => (
+                {translatedData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -47,13 +57,13 @@ export const CropDistributionChart = () => {
                   borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
-                formatter={(value) => [`${value}%`, 'Distribution']}
+                formatter={(value) => [`${value}%`, t('dashboard.distribution')]}
               />
             </PieChart>
           </ResponsiveContainer>
         </div>
         <div className="mt-2 space-y-1 px-2">
-          {cropDistribution.map((crop, index) => (
+          {translatedData.map((crop, index) => (
             <div key={index} className="flex items-center justify-between">
               <div className="flex items-center">
                 <div 

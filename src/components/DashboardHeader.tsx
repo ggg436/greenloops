@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthContext } from '@/lib/AuthProvider';
+import { GoogleTranslateButton } from './GoogleTranslateButton';
 
 const DashboardHeader: React.FC = () => {
   const location = useLocation();
@@ -45,8 +46,9 @@ const DashboardHeader: React.FC = () => {
   return (
     <header className="w-full h-16 px-6 border-b flex items-center justify-between bg-white">
       {/* Left section */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         <h1 className="text-3xl font-bold text-gray-900">{getPageTitle()}</h1>
+        <GoogleTranslateButton />
       </div>
 
       {/* Center section */}
@@ -63,11 +65,6 @@ const DashboardHeader: React.FC = () => {
 
       {/* Right section */}
       <div className="flex items-center gap-6">
-        <Button variant="ghost" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-          <span>Eng (US)</span>
-          <ChevronDown size={12} />
-        </Button>
-        
         <Button variant="ghost" className="relative p-2">
           <Bell size={18} className="text-gray-700" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
