@@ -175,33 +175,6 @@ const HeroSection = () => {
             </div>
           </div>
         </div>
-        
-        {/* Features section */}
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            {
-              title: "AI Crop Monitoring",
-              description: "Real-time monitoring of crop health using advanced AI algorithms and satellite imagery.",
-              icon: "🌱"
-            },
-            {
-              title: "Disease Detection",
-              description: "Early detection of crop diseases through image recognition and pattern analysis.",
-              icon: "🔍"
-            },
-            {
-              title: "Smart Recommendations",
-              description: "Personalized recommendations for irrigation, fertilization, and pest control.",
-              icon: "💡"
-            }
-          ].map((feature, index) => (
-            <div key={index} className="bg-white/80 backdrop-blur-sm p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="text-3xl mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );
