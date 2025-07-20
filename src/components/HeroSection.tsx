@@ -154,11 +154,16 @@ const HeroSection = () => {
             {/* Main dashboard image */}
             <div className="relative bg-white p-2 rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-500">
               <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 to-purple-500/5 rounded-2xl"></div>
-              <img 
-                src="/dashboard.png" 
-                alt="Krishak AI Dashboard"
-                className="rounded-xl w-full h-auto"
-              />
+              <div className="rounded-xl overflow-hidden" style={{ 
+                borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%",
+                border: "3px solid rgba(59, 130, 246, 0.3)"
+              }}>
+                <img 
+                  src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fG1vZGVybiUyMGFncmljdWx0dXJlfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&h=500&q=80" 
+                  alt="Modern Agriculture Technology"
+                  className="w-full h-auto"
+                />
+              </div>
               
               {/* Decorative elements */}
               <div className="absolute -bottom-3 -right-3 bg-blue-600 rounded-full p-3 shadow-lg">

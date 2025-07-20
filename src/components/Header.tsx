@@ -33,10 +33,7 @@ const Header = () => {
             <h1 className="text-xl font-extrabold text-zinc-900 tracking-[4px] uppercase">
               KRISHAK AI
             </h1>
-            <p className="text-xs text-zinc-700 font-medium mt-1">
-                  Empowering Nepali farmers with modern agricultural technology
-            </p>
-              </div>
+          </div>
           </div>
           <nav className="hidden md:flex items-center space-x-8">
             <NavigationMenu>
