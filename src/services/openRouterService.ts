@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // OpenRouter API configuration
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = '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';
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 
 // Message interface

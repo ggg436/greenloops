@@ -769,7 +769,7 @@ const Feed = () => {
               
               <div className="flex justify-center space-x-8 mb-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">201</div>
+                  <div className="text-2xl font-bold text-gray-900">{posts.filter(post => post.authorId === user?.uid).length}</div>
                   <div className="text-xs text-gray-500">Posts</div>
                 </div>
                 <div className="text-center">
