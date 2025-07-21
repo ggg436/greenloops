@@ -259,13 +259,13 @@ const checkOfflineData = (userId: string): UserChartData | null => {
 
 // Default data templates
 export const getDefaultRevenueData = (): RevenueData[] => [
-  { day: 'Monday', onlineSales: 0, offlineSales: 0 },
-  { day: 'Tuesday', onlineSales: 0, offlineSales: 0 },
-  { day: 'Wednesday', onlineSales: 0, offlineSales: 0 },
-  { day: 'Thursday', onlineSales: 0, offlineSales: 0 },
-  { day: 'Friday', onlineSales: 0, offlineSales: 0 },
-  { day: 'Saturday', onlineSales: 0, offlineSales: 0 },
-  { day: 'Sunday', onlineSales: 0, offlineSales: 0 }
+  { day: 'Monday', onlineSales: 1200, offlineSales: 800 },
+  { day: 'Tuesday', onlineSales: 1500, offlineSales: 950 },
+  { day: 'Wednesday', onlineSales: 1700, offlineSales: 1100 },
+  { day: 'Thursday', onlineSales: 1400, offlineSales: 900 },
+  { day: 'Friday', onlineSales: 2000, offlineSales: 1300 },
+  { day: 'Saturday', onlineSales: 2200, offlineSales: 1600 },
+  { day: 'Sunday', onlineSales: 1800, offlineSales: 1200 }
 ];
 
 export const getDefaultCropDistributionData = (): CropDistributionData[] => [
