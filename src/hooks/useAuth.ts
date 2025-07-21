@@ -6,7 +6,8 @@ import {
   onAuthStateChanged,
   User
 } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -21,9 +22,28 @@ export function useAuth() {
     return () => unsubscribe();
   }, []);
 
-  const signup = async (email: string, password: string) => {
+  const signup = async (email: string, password: string, userType: 'farmer' | 'user') => {
     try {
-      return await createUserWithEmailAndPassword(auth, email, password);
+      // Create the user with Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const newUser = userCredential.user;
+      
+      // Store additional user data in Firestore
+      await setDoc(doc(db, 'users', newUser.uid), {
+        displayName: email.split('@')[0],
+        email: email,
+        photoURL: '/placeholder.svg',
+        handle: `@${email.split('@')[0]}`,
+        userType: userType,
+        followers: [],
+        following: [],
+        followersCount: 0,
+        followingCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      return userCredential;
     } catch (error) {
       console.error("Error during signup:", error);
       throw error;

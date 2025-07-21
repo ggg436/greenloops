@@ -1,29 +1,59 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { useTranslation } from 'react-i18next';
 import { kFormatter, translateDay } from '@/lib/formatters';
-
-// This will be translated in the component
-const revenueData = [
-  { day: 'Monday', onlineSales: 15, offlineSales: 14 },
-  { day: 'Tuesday', onlineSales: 18, offlineSales: 12 },
-  { day: 'Wednesday', onlineSales: 6, offlineSales: 22 },
-  { day: 'Thursday', onlineSales: 16, offlineSales: 7 },
-  { day: 'Friday', onlineSales: 13, offlineSales: 12 },
-  { day: 'Saturday', onlineSales: 17, offlineSales: 15 },
-  { day: 'Sunday', onlineSales: 21, offlineSales: 11 },
-];
+import { getSpecificChartData, getDefaultRevenueData, RevenueData } from '@/lib/chartData';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const TotalRevenueChart = () => {
   const { t } = useTranslation();
+  const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadChartData = async () => {
+      try {
+        // Try to get user-specific data from Firestore
+        const userData = await getSpecificChartData<RevenueData>('revenueData');
+        
+        if (userData && userData.length > 0) {
+          setRevenueData(userData);
+        } else {
+          // Fall back to default data if no user data exists
+          setRevenueData(getDefaultRevenueData());
+        }
+      } catch (error) {
+        console.error('Error loading revenue data:', error);
+        // Fall back to default data on error
+        setRevenueData(getDefaultRevenueData());
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadChartData();
+  }, []);
   
   // Translate days for chart
   const translatedData = revenueData.map(item => ({
     ...item,
     translatedDay: translateDay(item.day)
   }));
+  
+  if (loading) {
+    return (
+      <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
+        <CardHeader className="pb-2 px-4 pt-4">
+          <Skeleton className="h-6 w-48" />
+        </CardHeader>
+        <CardContent className="px-2 pb-4 flex-1 flex flex-col">
+          <Skeleton className="h-[300px] w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">

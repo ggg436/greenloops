@@ -53,9 +53,9 @@ export const SalesSummarySection = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-2 w-full">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
       {/* Today's Sales */}
-      <Card className="bg-white border border-gray-200/50 rounded-2xl overflow-hidden shadow-sm h-full w-full relative">
+      <Card className="bg-white border border-gray-200/50 rounded-lg overflow-hidden shadow-sm h-full w-full relative">
         <CardHeader className="pb-0 px-3 pt-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-bold text-zinc-900">{t('dashboard.todaySales')}</CardTitle>

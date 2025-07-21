@@ -243,7 +243,7 @@ const Header = () => {
                 className="border-blue-600 text-blue-600 hover:bg-blue-50 mr-4"
                 onClick={() => user ? navigate('/dashboard') : navigate('/signup')}
               >
-                Register Farm
+                Register
               </Button>
             </div>
           <Button 

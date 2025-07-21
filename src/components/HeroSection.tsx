@@ -19,6 +19,34 @@ const keyframeStyles = `
     0%, 100% { transform: translateY(0) rotate(15deg); }
     50% { transform: translateY(-30px) rotate(15deg); }
   }
+  @keyframes falling {
+    0% { 
+      transform: translateY(-10vh) translateX(0) rotate(0deg); 
+      opacity: 0.8;
+    }
+    50% {
+      transform: translateY(40vh) translateX(30px) rotate(180deg);
+      opacity: 1;
+    }
+    100% { 
+      transform: translateY(100vh) translateX(10px) rotate(360deg); 
+      opacity: 0.7;
+    }
+  }
+  @keyframes fallingReverse {
+    0% { 
+      transform: translateY(-10vh) translateX(0) rotate(0deg); 
+      opacity: 0.8;
+    }
+    50% {
+      transform: translateY(40vh) translateX(-20px) rotate(-180deg);
+      opacity: 1;
+    }
+    100% { 
+      transform: translateY(100vh) translateX(-10px) rotate(-360deg); 
+      opacity: 0.7;
+    }
+  }
 `;
 
 // User avatar data
@@ -44,34 +72,34 @@ const HeroSection = () => {
       {/* Add keyframes to the document */}
       <style dangerouslySetInnerHTML={{ __html: keyframeStyles }} />
       
-      {/* Background decorative elements - now with distinct shapes, colors and animations */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Top right blue circle */}
-        <div className="absolute -right-40 -top-40 w-80 h-80 bg-blue-100 rounded-full opacity-30 blur-3xl animate-pulse" 
-             style={{ animationDuration: '15s' }}></div>
-        
-        {/* Middle left green hexagon */}
-        <div className="absolute -left-20 top-1/3 w-60 h-60 bg-green-100 opacity-30 blur-3xl"
-             style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', 
-                      animation: 'float 20s infinite ease-in-out' }}></div>
-        
-        {/* Bottom right yellow triangle */}
-        <div className="absolute right-1/4 bottom-0 w-40 h-40 bg-yellow-100 opacity-20 blur-2xl"
-             style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)', 
-                      animation: 'spin 30s infinite linear' }}></div>
-        
-        {/* Top left purple square */}
-        <div className="absolute left-1/4 top-20 w-32 h-32 bg-purple-100 rounded-lg opacity-20 blur-xl"
-             style={{ transform: 'rotate(15deg)', 
-                      animation: 'bounce 25s infinite ease-in-out' }}></div>
-        
-        {/* Bottom left cyan diamond */}
-        <div className="absolute left-10 bottom-20 w-48 h-48 bg-cyan-100 opacity-20 blur-2xl"
-             style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)', 
-                      animation: 'float 18s infinite ease-in-out' }}></div>
+      {/* Falling Leaves Animation */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-[10%] text-green-500 opacity-70" style={{ animation: 'falling 15s linear infinite', animationDelay: '0s' }}>
+          <Leaf size={24} />
+        </div>
+        <div className="absolute top-0 left-[25%] text-green-600 opacity-60" style={{ animation: 'fallingReverse 11s linear infinite', animationDelay: '2s' }}>
+          <Leaf size={18} />
+        </div>
+        <div className="absolute top-0 left-[45%] text-green-400 opacity-80" style={{ animation: 'falling 13s linear infinite', animationDelay: '5s' }}>
+          <Leaf size={20} />
+        </div>
+        <div className="absolute top-0 left-[65%] text-emerald-500 opacity-70" style={{ animation: 'fallingReverse 14s linear infinite', animationDelay: '1s' }}>
+          <Leaf size={22} />
+        </div>
+        <div className="absolute top-0 left-[85%] text-emerald-600 opacity-60" style={{ animation: 'falling 16s linear infinite', animationDelay: '3s' }}>
+          <Leaf size={16} />
+        </div>
+        <div className="absolute top-0 left-[5%] text-green-500 opacity-75" style={{ animation: 'fallingReverse 12s linear infinite', animationDelay: '7s' }}>
+          <Leaf size={19} />
+        </div>
+        <div className="absolute top-0 left-[55%] text-emerald-400 opacity-80" style={{ animation: 'falling 14s linear infinite', animationDelay: '4s' }}>
+          <Leaf size={21} />
+        </div>
       </div>
       
-      <div className="max-w-7xl mx-auto px-6 py-20 md:py-28 relative z-10">
+      {/* Background is now white - all decorative blue wave elements are removed */}
+      
+      <div className="max-w-7xl mx-auto px-6 py-10 md:py-16 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left column - Text content */}
           <div className="space-y-8">
@@ -133,56 +161,31 @@ const HeroSection = () => {
             </div>
           </div>
           
-          {/* Right column - Dashboard image */}
+          {/* Right column - Farming Machine image */}
           <div className="relative">
-            {/* Feature highlights */}
-            <div className="absolute -left-12 top-1/4 z-10 bg-white rounded-xl shadow-xl p-3 flex items-center gap-3 animate-pulse">
-              <div className="bg-green-100 p-2 rounded-lg">
-                <Leaf className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <div className="text-xs text-gray-500">Crop Health</div>
-                <div className="text-sm font-medium">98% Healthy</div>
-              </div>
-            </div>
-            
-            <div className="absolute -right-8 top-10 z-10 bg-white rounded-xl shadow-xl p-3 flex items-center gap-3">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <Cloud className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <div className="text-xs text-gray-500">Weather</div>
-                <div className="text-sm font-medium">Optimal Conditions</div>
-              </div>
-            </div>
-            
-            <div className="absolute -right-4 bottom-10 z-10 bg-white rounded-xl shadow-xl p-3 flex items-center gap-3">
-              <div className="bg-yellow-100 p-2 rounded-lg">
-                <BarChart3 className="h-5 w-5 text-yellow-600" />
-              </div>
-              <div>
-                <div className="text-xs text-gray-500">Yield Forecast</div>
-                <div className="text-sm font-medium">+24% This Season</div>
-              </div>
-            </div>
-            
-            {/* Main dashboard image */}
-            <div className="relative bg-white p-2 rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-500">
-              <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 to-purple-500/5 rounded-2xl"></div>
-              <div className="rounded-xl overflow-hidden" style={{ 
-                borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%",
-                border: "3px solid rgba(59, 130, 246, 0.3)"
+            <div className="relative">
+              <div style={{ 
+                background: "#a7e9ff",
+                borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%", 
+                height: "350px",
+                width: "100%",
+                position: "relative",
+                overflow: "hidden"
               }}>
-                <img 
-                  src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fG1vZGVybiUyMGFncmljdWx0dXJlfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&h=500&q=80" 
-                  alt="Modern Agriculture Technology"
-                  className="w-full h-auto"
-                />
-              </div>
-              
-              {/* Decorative elements */}
-              <div className="absolute -bottom-3 -right-3 bg-blue-600 rounded-full p-3 shadow-lg">
-                <Check className="h-6 w-6 text-white" />
+                <div className="absolute bottom-0 left-0 w-full h-1/3" style={{ background: "#7ed957" }}></div>
+                <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2" style={{ width: "75%" }}>
+                  <img 
+                    src="/hero.avif" 
+                    alt="Hero"
+                    className="w-full h-auto drop-shadow-2xl rounded-xl"
+                  />
+                </div>
+                <div className="absolute bottom-12 left-12">
+                  <div className="w-16 h-16 bg-yellow-300 rounded-full"></div>
+                </div>
+                <div className="absolute bottom-8 right-24">
+                  <div className="w-12 h-12 bg-yellow-300 rounded-full"></div>
+                </div>
               </div>
             </div>
           </div>

@@ -5,45 +5,45 @@ const BlogSection = () => {
   const blogPosts = [
     {
       id: 1,
-      title: "How a visual artist redefines success in graphic design",
-      category: "Growth",
-      date: "April 09, 2022",
-      image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      title: "Sustainable Rice Farming Practices in Terai Region of Nepal",
+      category: "Agriculture",
+      date: "May 15, 2024",
+      image: "https://images.unsplash.com/photo-1595339589628-3d8a8e1644ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
     },
     {
       id: 2,
-      title: "Why choose a theme that looks good with WooCommerce",
-      category: "Growth", 
-      date: "April 09, 2022",
-      image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      title: "Nepal's Coffee Revolution: Small Farmers Reaching Global Markets",
+      category: "Markets", 
+      date: "May 10, 2024",
+      image: "https://images.unsplash.com/photo-1599930113854-d6d7fd522204?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
     },
     {
       id: 3,
-      title: "How to write content about your photographs",
-      category: "Growth",
-      date: "April 09, 2022", 
-      image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      title: "Climate-Resilient Agriculture: Adapting to Changing Weather Patterns",
+      category: "Climate",
+      date: "May 05, 2024", 
+      image: "https://images.unsplash.com/photo-1585132004237-dd248ba70067?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
     },
     {
       id: 4,
-      title: "Lessons and insights from 8 years of Pixelgrade",
-      category: "Growth",
-      date: "April 09, 2022",
-      image: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      title: "Traditional Seed Preservation in Remote Mountain Communities",
+      category: "Heritage",
+      date: "April 28, 2024",
+      image: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
     },
     {
       id: 5,
-      title: "Travelling as a way of self-discovery and progress",
-      category: "Growth",
-      date: "April 09, 2022",
-      image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      title: "Millet Renaissance: Reviving Nepal's Forgotten Super Grain",
+      category: "Nutrition",
+      date: "April 22, 2024",
+      image: "https://images.unsplash.com/photo-1586201375813-78ca47ae29b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
     },
     {
       id: 6,
-      title: "The unseen of spending three years at Pixelgrade",
-      category: "Growth",
-      date: "April 09, 2022",
-      image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      title: "Agricultural Cooperatives Transforming Rural Nepal's Economy",
+      category: "Community",
+      date: "April 17, 2024",
+      image: "https://images.unsplash.com/photo-1593260654784-4aa47cd0c803?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
     }
   ];
 
@@ -52,10 +52,10 @@ const BlogSection = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-zinc-900 mb-4">
-            Latest from our blog
+            Nepal Agriculture Insights
           </h2>
           <p className="text-lg text-zinc-600 max-w-2xl mx-auto">
-            Create custom landing pages with Rareblocks that converts more visitors than any website.
+            Explore the latest trends, innovations, and success stories from Nepal's diverse agricultural landscape.
           </p>
         </div>
 

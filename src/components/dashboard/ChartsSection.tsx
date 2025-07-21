@@ -10,16 +10,16 @@ import { TopProductsChart } from './charts/TopProductsChart';
 
 export const ChartsSection = () => {
   return (
-    <div className="space-y-12 mb-6 w-full">
+    <div className="space-y-6 mb-6 w-full">
       {/* Single Row - Three charts in requested order */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
-        <div className="h-[340px] lg:h-[340px] w-full bg-white rounded-lg shadow-sm border border-gray-100">
+        <div className="h-[340px] w-full bg-white rounded-lg shadow-sm border border-gray-100">
           <TotalRevenueChart />
         </div>
-        <div className="h-[340px] lg:h-[340px] w-full bg-white rounded-lg shadow-sm border border-gray-100">
+        <div className="h-[340px] w-full bg-white rounded-lg shadow-sm border border-gray-100">
           <CustomerSatisfactionChart />
         </div>
-        <div className="h-[340px] lg:h-[340px] w-full bg-white rounded-lg shadow-sm border border-gray-100">
+        <div className="h-[340px] w-full bg-white rounded-lg shadow-sm border border-gray-100">
           <TargetVsRealityChart />
         </div>
       </div>

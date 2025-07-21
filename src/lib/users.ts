@@ -20,6 +20,7 @@ export interface UserProfile {
   displayName: string;
   photoURL: string;
   handle: string;
+  userType?: 'farmer' | 'user';  // Add userType field
   followers: string[]; // Array of user IDs who follow this user
   following: string[]; // Array of user IDs this user follows
   followersCount: number;
@@ -43,6 +44,7 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
       displayName: userData.displayName || 'Anonymous',
       photoURL: userData.photoURL || '/placeholder.svg',
       handle: userData.handle || `@${userData.displayName?.toLowerCase().replace(/\s/g, '') || 'anonymous'}`,
+      userType: userData.userType || 'user', // Default to 'user' if not specified
       followers: userData.followers || [],
       following: userData.following || [],
       followersCount: userData.followersCount || 0,
@@ -51,6 +53,19 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
   } catch (error) {
     console.error("Error getting user profile:", error);
     throw error;
+  }
+};
+
+// Get current user's profile
+export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
+  const currentUser = auth.currentUser;
+  if (!currentUser) return null;
+  
+  try {
+    return await getUserProfile(currentUser.uid);
+  } catch (error) {
+    console.error("Error getting current user profile:", error);
+    return null;
   }
 };
 

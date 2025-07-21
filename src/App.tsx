@@ -31,7 +31,10 @@ import SignUp from "./pages/SignUp";
 import Orders from "./pages/Orders";
 import Checkout from "./pages/Checkout";
 import { AuthProvider, ProtectedRoute, PublicRoute } from "./lib/AuthProvider";
+import { FarmerRoute } from "./lib/RouteGuards";
 import { SidebarProvider } from "./context/SidebarContext";
+import Data from './pages/Data';
+import Messaging from './pages/Messaging';
 
 const queryClient = new QueryClient();
 
@@ -62,12 +65,14 @@ const App = () => (
               <Route index element={<Dashboard />} />
               <Route path="feed" element={<Feed />} />
               <Route path="dr-plant" element={<DrPlant />} />
+              <Route path="data" element={<FarmerRoute><Data /></FarmerRoute>} />
               <Route path="marketplace" element={<Marketplace />} />
               <Route path="marketplace/add-product" element={<AddProduct />} />
               <Route path="marketplace/:id" element={<ProductDetails />} />
               <Route path="transactions" element={<Transactions />} />
               <Route path="transactions/:id" element={<TransactionDetails />} />
               <Route path="orders" element={<Orders />} />
+              <Route path="messaging" element={<Messaging />} />
               <Route path="checkout" element={<Checkout />} />
               <Route path="weather" element={<Weather />} />
               <Route path="pricing" element={<Pricing />} />

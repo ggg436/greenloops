@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,13 +10,19 @@ import { useAuth } from "@/hooks/useAuth"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth"
-import { auth } from "@/lib/firebase"
+import { auth, db } from "@/lib/firebase"
+import { doc, setDoc } from "firebase/firestore"
 
-export default function AuthForm() {
-  const [isSignUp, setIsSignUp] = useState(false)
+interface AuthFormProps {
+  initialMode?: 'login' | 'signup';
+}
+
+export default function AuthForm({ initialMode }: AuthFormProps) {
+  const [isSignUp, setIsSignUp] = useState(initialMode === 'signup')
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [userType, setUserType] = useState<'farmer' | 'user'>('user')
   const [isLoading, setIsLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   
@@ -35,7 +41,7 @@ export default function AuthForm() {
     
     try {
       if (isSignUp) {
-        await signup(email, password)
+        await signup(email, password, userType)
         toast.success("Account created successfully!")
       } else {
         await login(email, password)
@@ -65,13 +71,26 @@ export default function AuthForm() {
       })
       
       const result = await signInWithPopup(auth, provider)
+      const user = result.user
       
-      // You can access additional user info if needed
-      // const user = result.user
-      // const credential = GoogleAuthProvider.credentialFromResult(result)
-      // const token = credential?.accessToken
+      // If signing up, create user profile with selected user type
+      if (isSignUp) {
+        await setDoc(doc(db, 'users', user.uid), {
+          displayName: user.displayName || user.email?.split('@')[0] || 'Anonymous',
+          email: user.email || '',
+          photoURL: user.photoURL || '/placeholder.svg',
+          handle: `@${user.displayName?.toLowerCase().replace(/\s/g, '') || user.email?.split('@')[0] || 'anonymous'}`,
+          userType: userType,
+          followers: [],
+          following: [],
+          followersCount: 0,
+          followingCount: 0,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
       
-      toast.success("Signed in with Google successfully!")
+      toast.success(`${isSignUp ? "Signed up" : "Signed in"} with Google successfully!`)
       navigate("/dashboard")
     } catch (error: any) {
       console.error("Google sign-in error:", error)
@@ -147,6 +166,42 @@ export default function AuthForm() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                   />
+                </div>
+              )}
+              
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Account Type
+                  </Label>
+                  <div className="flex items-center gap-6 mt-2">
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="userType-farmer"
+                        name="userType"
+                        className="w-4 h-4 text-blue-600"
+                        checked={userType === 'farmer'}
+                        onChange={() => setUserType('farmer')}
+                      />
+                      <Label htmlFor="userType-farmer" className="ml-2 text-sm font-medium text-gray-700">
+                        Farmer
+                      </Label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="userType-user"
+                        name="userType"
+                        className="w-4 h-4 text-blue-600"
+                        checked={userType === 'user'}
+                        onChange={() => setUserType('user')}
+                      />
+                      <Label htmlFor="userType-user" className="ml-2 text-sm font-medium text-gray-700">
+                        Regular User
+                      </Label>
+                    </div>
+                  </div>
                 </div>
               )}
 
