@@ -71,3 +71,37 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Environment Variables
+Create a `.env` file (and `.env.production` for prod) at the project root. Vite only exposes variables prefixed with `VITE_` to the client.
+
+Required:
+
+```
+# Firebase
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_DATABASE_URL=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+
+# Google Gemini
+VITE_GEMINI_API_KEY=
+
+# OpenRouter
+VITE_OPENROUTER_API_KEY=
+VITE_OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+VITE_OPENROUTER_HTTP_REFERER=https://greenloop.com
+VITE_OPENROUTER_TITLE=GreenLoop Chat
+```
+
+Optional (dev tooling):
+
+```
+# Example flags
+# VITE_FEATURE_FLAG_EXAMPLE=true
+```
+
+After updating env files, restart the dev server.
