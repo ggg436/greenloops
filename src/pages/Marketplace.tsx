@@ -463,31 +463,31 @@ const Marketplace = () => {
 
         <div className="flex gap-8">
           {/* Sidebar filters */}
-          <div className="w-72 flex-shrink-0">
+          <div className="w-72 flex-shrink-0 bg-green-50/40 border border-green-100 rounded-2xl p-5">
             {/* Price filter */}
             <div className="mb-8">
-              <h3 className="font-semibold text-gray-800 mb-4">Price, $</h3>
+              <h3 className="font-semibold text-green-700 mb-4">Price, $</h3>
               <div className="flex gap-4">
                 <input
                   type="text"
                   placeholder="Min"
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm"
+                  className="flex-1 px-3 py-2 border border-green-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-300 bg-white"
                 />
                 <input
                   type="text"
                   placeholder="Max"
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm"
+                  className="flex-1 px-3 py-2 border border-green-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-300 bg-white"
                 />
               </div>
             </div>
 
             {/* Product Type filter */}
             <div className="mb-8">
-              <h3 className="font-semibold text-gray-800 mb-4">Product Type</h3>
+              <h3 className="font-semibold text-green-700 mb-4">Product Type</h3>
               <div className="space-y-3">
                 {['Organic', 'Non-GMO', 'Certified', 'Local', 'Hybrid'].map((feature) => (
                   <label key={feature} className="flex items-center gap-2">
-                    <input type="checkbox" className="w-4 h-4 border border-gray-400 rounded" />
+                    <input type="checkbox" className="w-4 h-4 rounded border-green-300 text-green-600 focus:ring-green-500" />
                     <span className="text-sm text-gray-800">{feature}</span>
                   </label>
                 ))}
@@ -496,11 +496,11 @@ const Marketplace = () => {
 
             {/* Crop Type filter */}
             <div className="mb-8">
-              <h3 className="font-semibold text-gray-800 mb-4">Crop Type</h3>
+              <h3 className="font-semibold text-green-700 mb-4">Crop Type</h3>
               <div className="space-y-3">
                 {['Cereals', 'Pulses', 'Oilseeds', 'Vegetables', 'Fruits', 'Cash Crops'].map((resolution) => (
                   <label key={resolution} className="flex items-center gap-2">
-                    <input type="checkbox" className="w-4 h-4 border border-gray-400 rounded" />
+                    <input type="checkbox" className="w-4 h-4 rounded border-green-300 text-green-600 focus:ring-green-500" />
                     <span className="text-sm text-gray-800">{resolution}</span>
                   </label>
                 ))}
@@ -509,11 +509,11 @@ const Marketplace = () => {
 
             {/* Farming System filter */}
             <div className="mb-8">
-              <h3 className="font-semibold text-gray-800 mb-4">Farming System</h3>
+              <h3 className="font-semibold text-green-700 mb-4">Farming System</h3>
               <div className="space-y-3">
                 {['Organic', 'Conventional', 'Integrated', 'Precision'].map((level) => (
                   <label key={level} className="flex items-center gap-2">
-                    <input type="checkbox" className="w-4 h-4 border border-gray-400 rounded" />
+                    <input type="checkbox" className="w-4 h-4 rounded border-green-300 text-green-600 focus:ring-green-500" />
                     <span className="text-sm text-gray-800">{level}</span>
                   </label>
                 ))}
@@ -522,11 +522,11 @@ const Marketplace = () => {
 
             {/* Brand filter */}
             <div>
-              <h3 className="font-semibold text-gray-800 mb-4">Brand</h3>
+              <h3 className="font-semibold text-green-700 mb-4">Brand</h3>
               <div className="space-y-3">
                 {['John Deere', 'Mahindra', 'Syngenta', 'Bayer', 'TAFE', 'Sonalika', 'Kubota'].map((brand) => (
                   <label key={brand} className="flex items-center gap-2">
-                    <input type="checkbox" className="w-4 h-4 border border-gray-400 rounded" />
+                    <input type="checkbox" className="w-4 h-4 rounded border-green-300 text-green-600 focus:ring-green-500" />
                     <span className="text-sm text-gray-800">{brand}</span>
                   </label>
                 ))}
