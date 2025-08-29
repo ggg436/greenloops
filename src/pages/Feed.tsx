@@ -1008,32 +1008,7 @@ const Feed = () => {
             </div>
           </div>
 
-          {/* Debug Button */}
-          <div className="mb-8">
-            <Button 
-              onClick={debugGetAllPosts}
-              variant="outline"
-              className="w-full rounded-xl border-gray-200 text-sm"
-            >
-              Debug: Check Posts
-            </Button>
-
-            <Button 
-              onClick={handleManualFetchPosts}
-              variant="outline"
-              className="w-full rounded-xl border-gray-200 text-sm"
-            >
-              Manual Fetch Posts (25)
-            </Button>
-
-            <Button 
-              onClick={handleFixNegativeLikes}
-              variant="outline"
-              className="w-full rounded-xl border-gray-200 text-sm"
-            >
-              Fix Negative Likes
-            </Button>
-          </div>
+          {/* Debug buttons removed for production */}
 
           {/* Favourites */}
           <div className="mb-8">
