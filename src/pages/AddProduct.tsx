@@ -5,13 +5,12 @@ import {
   X, 
   Check,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  TriangleAlert
 } from 'lucide-react';
 import { useAuthContext } from '@/lib/AuthProvider';
 import { toast } from 'sonner';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { convertImagesToBase64 } from '@/lib/products';
+import { addProduct } from '@/lib/products';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -36,6 +35,61 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
+import { AlertNotification } from '@/components/ui/alert-notification';
+
+// Helper function to convert file to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
+
+// Helper function to resize image on client side
+const resizeImage = async (file: File, maxSize: number = 800): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      // Calculate new dimensions
+      let { width, height } = img;
+      if (width > height) {
+        if (width > maxSize) {
+          height = (height * maxSize) / width;
+          width = maxSize;
+        }
+      } else {
+        if (height > maxSize) {
+          width = (width * maxSize) / height;
+          height = maxSize;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Draw resized image
+      ctx?.drawImage(img, 0, 0, width, height);
+      
+      // Convert to blob
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const resizedFile = new File([blob], file.name, { type: 'image/jpeg' });
+          resolve(resizedFile);
+        } else {
+          reject(new Error('Failed to resize image'));
+        }
+      }, 'image/jpeg', 0.8);
+    };
+    
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = URL.createObjectURL(file);
+  });
+};
 
 const CATEGORIES = [
   'Seeds',
@@ -49,6 +103,8 @@ const CATEGORIES = [
   'Agricultural Machinery'
 ];
 
+type ListingType = 'sell' | 'giveaway' | 'exchange';
+
 const AddProduct = () => {
   const navigate = useNavigate();
   const { user } = useAuthContext();
@@ -58,6 +114,7 @@ const AddProduct = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
+  const [showPriceNotice, setShowPriceNotice] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -67,10 +124,11 @@ const AddProduct = () => {
     condition: 'New',
     quantity: '1',
     features: '',
-    specifications: ''
+    specifications: '',
+    listingType: 'sell' as ListingType,
+    exchangeWith: ''
   });
 
-  // If not logged in, redirect to login
   React.useEffect(() => {
     if (!user) {
       toast.error("Please login to add products");
@@ -80,6 +138,9 @@ const AddProduct = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    if (name === 'price' && formData.listingType !== 'sell') {
+      return;
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -87,205 +148,225 @@ const AddProduct = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePriceAttempt = () => {
+    if (formData.listingType !== 'sell') {
+      setShowPriceNotice(true);
+      setTimeout(() => setShowPriceNotice(false), 2500);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
-    if (selectedFiles.length === 0) return;
-
-    // Validate file type
-    const validTypeFiles = selectedFiles.filter(file => {
-      const isValid = file.type.startsWith('image/');
-      if (!isValid) toast.error(`${file.name} is not a valid image file`);
-      return isValid;
-    });
-
-    // Validate file size - max 1MB per file for base64
-    const validFiles = validTypeFiles.filter(file => {
-      const isValidSize = file.size <= 1 * 1024 * 1024; // 1MB
-      if (!isValidSize) toast.error(`${file.name} exceeds the 1MB limit`);
-      return isValidSize;
-    });
-
-    if (validFiles.length === 0) return;
-
-    // Limit to 5 files
-    const totalFiles = [...files, ...validFiles];
-    if (totalFiles.length > 5) {
-      toast.error('You can upload maximum 5 images');
+    
+    // Check file sizes (limit to 5MB total for base64 storage)
+    const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    
+    if (totalSize > maxSize) {
+      toast.error('Total file size must be less than 5MB for base64 storage');
       return;
     }
-
-    // Create preview URLs for the images
-    const newPreviewUrls = validFiles.map(file => URL.createObjectURL(file));
     
-    setFiles(prev => [...prev, ...validFiles]);
-    setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+    // Check individual file sizes
+    const oversizedFiles = selectedFiles.filter(file => file.size > 2 * 1024 * 1024); // 2MB per file
+    if (oversizedFiles.length > 0) {
+      toast.error('Individual files must be less than 2MB. Images will be automatically resized.');
+    }
+    
+    setFiles(selectedFiles);
+    
+    // Create preview URLs
+    const urls = selectedFiles.map(file => URL.createObjectURL(file));
+    setPreviewUrls(urls);
   };
 
   const removeFile = (index: number) => {
-    // Remove the file and its preview
     setFiles(files.filter((_, i) => i !== index));
-    
-    // Revoke the object URL to avoid memory leaks
     URL.revokeObjectURL(previewUrls[index]);
     setPreviewUrls(previewUrls.filter((_, i) => i !== index));
   };
 
-  const convertImages = async (): Promise<string[]> => {
-    if (files.length === 0) return [];
-    
-    setIsUploading(true);
-    try {
-      console.log(`Converting ${files.length} product images to base64`);
-      const base64Images = await convertImagesToBase64(files);
-      console.log('Images converted to base64 successfully');
-      return base64Images;
-    } catch (error) {
-      console.error('Error converting images to base64:', error);
-      toast.error('Failed to process images');
-      return [];
-    } finally {
-      setIsUploading(false);
-    }
+  const removeSelectedImage = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeAllImages = () => {
+    setFiles([]);
+    setPreviewUrls([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user) {
-      toast.error('Please login to add a product');
+      toast.error("Please login to add products");
       return;
     }
 
-    // Validate form data
-    if (!formData.title.trim()) {
-      toast.error('Title is required');
-      return;
-    }
-    
-    if (!formData.price.trim() || isNaN(parseFloat(formData.price))) {
-      toast.error('Please enter a valid price');
-      return;
-    }
-    
-    if (!formData.category) {
-      toast.error('Category is required');
+    if (!formData.title.trim() || !formData.category) {
+      toast.error('Please fill in all required fields');
       return;
     }
 
-    // Images are optional, proceed without validation
-    
+    if (formData.listingType === 'sell' && !formData.price.trim()) {
+      toast.error('Please enter a price for selling');
+      return;
+    }
+
+    if (formData.listingType === 'exchange' && !formData.exchangeWith.trim()) {
+      toast.error('Please specify what you want to exchange with');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Convert images to base64 if any
-      const imageUrls = files.length > 0 ? await convertImages() : [];
+      setIsUploading(true);
       
-      // Add product to Firestore
+      // Process images: resize and convert to base64
+      let imageUrls: string[] = [];
+      if (files.length > 0) {
+        console.log('Processing', files.length, 'images...');
+        imageUrls = await Promise.all(
+          files.map(async (file) => {
+            try {
+              // Resize image first
+              const resizedFile = await resizeImage(file, 800);
+              // Convert resized image to base64
+              const base64 = await fileToBase64(resizedFile);
+              console.log('Image processed successfully:', file.name);
+              return base64;
+            } catch (error) {
+              console.error('Error processing image:', file.name, error);
+              // Fallback to original file if resizing fails
+              return await fileToBase64(file);
+            }
+          })
+        );
+        console.log('All images processed successfully');
+      }
+      
+      setIsUploading(false);
+      
+      const normalizedPrice = formData.listingType === 'sell' ? parseFloat(formData.price) : 0;
+      
       const productData = {
         title: formData.title,
         description: formData.description,
-        price: parseFloat(formData.price),
+        price: normalizedPrice,
         category: formData.category,
         condition: formData.condition,
         quantity: parseInt(formData.quantity),
         features: formData.features.trim() ? formData.features.split('\n') : [],
         specifications: formData.specifications,
         images: imageUrls,
-        // Set a default placeholder image if no images were uploaded
         coverImage: imageUrls.length > 0 ? imageUrls[0] : 'https://placehold.co/400x400?text=No+Image',
-        sellerId: user.uid,
-        sellerName: user.displayName || user.email?.split('@')[0] || 'Anonymous',
-        sellerPhoto: user.photoURL || '',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
         rating: 0,
-        reviews: 0
+        reviews: 0,
+        listingType: formData.listingType,
+        comments: [],
+        averageRating: 0,
+        totalRatings: 0,
+        ...(formData.listingType === 'exchange' && { exchangeWith: formData.exchangeWith.trim() })
       };
+
+      console.log('Creating product with data:', productData);
+      const productId = await addProduct(productData);
+      console.log('Product created successfully with ID:', productId);
       
-      const docRef = await addDoc(collection(db, 'products'), productData);
       toast.success('Product added successfully!');
-      navigate(`/dashboard/marketplace/${docRef.id}`);
+      navigate(`/dashboard/marketplace/${productId}`);
     } catch (error) {
       console.error('Error adding product:', error);
       toast.error('Failed to add product');
     } finally {
       setIsSubmitting(false);
+      setIsUploading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto py-8 px-4">
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-2xl">Add New Product</CardTitle>
-          <CardDescription>Fill in the details below to list your product in the marketplace.</CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Basic Information</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Title */}
+    <div className="w-full max-w-7xl mx-auto py-8 px-4">
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left: General + Pricing */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">General Information</CardTitle>
+                <CardDescription>Provide basic details about your product.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* 1. Product Title */}
                 <div className="space-y-2">
                   <Label htmlFor="title">Product Title *</Label>
-                  <Input
-                    id="title"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    placeholder="e.g. DJI Phantom 4 Pro Drone"
-                    required
-                  />
+                  <Input id="title" name="title" value={formData.title} onChange={handleInputChange} placeholder="e.g. DJI Phantom 4 Pro Drone" required />
                 </div>
-                
-                {/* Price */}
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price ($) *</Label>
-                  <Input
-                    id="price"
-                    name="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.price}
-                    onChange={handleInputChange}
-                    placeholder="e.g. 599.99"
-                    required
-                  />
+                {/* 2. Listing Type & 3. Price */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="listingType">Listing Type *</Label>
+                    <Select value={formData.listingType} onValueChange={(value) => handleSelectChange('listingType', value)}>
+                      <SelectTrigger><SelectValue placeholder="Select Type" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sell">Sell</SelectItem>
+                        <SelectItem value="giveaway">Giveaway</SelectItem>
+                        <SelectItem value="exchange">Exchange</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Price (Rs) {formData.listingType === 'sell' ? '*' : ''}</Label>
+                    <div className="relative">
+                      <Input id="price" name="price" type="number" step="0.01" min="0" value={formData.listingType === 'sell' ? formData.price : '0'} onChange={handleInputChange} onFocus={handlePriceAttempt} onClick={handlePriceAttempt} placeholder={formData.listingType === 'giveaway' ? 'Free' : '0.00'} readOnly={formData.listingType !== 'sell'} className={formData.listingType !== 'sell' ? 'cursor-not-allowed opacity-70' : ''} required={formData.listingType === 'sell'} />
+                      {formData.listingType !== 'sell' && (
+                        <Alert className="absolute top-full left-0 mt-2 w-full" variant="warning">
+                          <TriangleAlert className="h-4 w-4 mr-2" />
+                          <AlertDescription>
+                            For Exchange, specify what you want to exchange with. Price is not required.
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Category */}
+                {formData.listingType === 'exchange' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="exchangeWith">Exchange With *</Label>
+                    <Input id="exchangeWith" name="exchangeWith" value={formData.exchangeWith} onChange={handleInputChange} placeholder="e.g. Seeds, Tools, Fertilizer..." required />
+                  </div>
+                )}
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
-                  <Select 
-                    value={formData.category}
-                    onValueChange={(value) => handleSelectChange('category', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map(category => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="description">Product Description</Label>
+                  <Textarea id="description" name="description" value={formData.description} onChange={handleInputChange} placeholder="Describe your product..." rows={4} />
                 </div>
-                
-                {/* Condition */}
-                <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="features">Key Features (one per line)</Label>
+                    <Textarea id="features" name="features" value={formData.features} onChange={handleInputChange} placeholder="4K Camera\n30 Minutes Flight Time\nObject Avoidance" rows={3} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="specifications">Technical Specifications</Label>
+                    <Textarea id="specifications" name="specifications" value={formData.specifications} onChange={handleInputChange} placeholder="Detailed specifications of your product..." rows={3} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Pricing & Stock</CardTitle>
+                <CardDescription>Control availability information.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2 md:col-span-1">
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input id="quantity" name="quantity" type="number" min="1" value={formData.quantity} onChange={handleInputChange} placeholder="1" />
+                </div>
+                <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="condition">Condition</Label>
-                  <Select 
-                    value={formData.condition}
-                    onValueChange={(value) => handleSelectChange('condition', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Condition" />
-                    </SelectTrigger>
+                  <Select value={formData.condition} onValueChange={(value) => handleSelectChange('condition', value)}>
+                    <SelectTrigger><SelectValue placeholder="Select Condition" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="New">New</SelectItem>
                       <SelectItem value="Like New">Like New</SelectItem>
@@ -296,164 +377,120 @@ const AddProduct = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
-                {/* Quantity */}
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity</Label>
-                  <Input
-                    id="quantity"
-                    name="quantity"
-                    type="number"
-                    min="1"
-                    value={formData.quantity}
-                    onChange={handleInputChange}
-                    placeholder="1"
-                  />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right: Upload Images + Category (sticky) */}
+          <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-6 self-start">
+            {/* Image Upload Section */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Product Images</CardTitle>
+                <CardDescription>Upload up to 5 images. Images will be automatically resized for optimal storage.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition-colors">
+                  <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*" multiple className="hidden" />
+                  <div className="flex flex-col items-center justify-center space-y-2">
+                    <Upload className="h-10 w-10 text-gray-400" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Click to upload images</p>
+                      <p className="text-xs text-gray-500">PNG, JPG, JPEG up to 2MB each</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="description">Product Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="Describe your product..."
-                  rows={4}
-                />
-              </div>
-            </div>
-            
-            {/* Product Details */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Additional Details</h3>
-              
-              <div className="space-y-2">
-                <Label htmlFor="features">Key Features (one per line)</Label>
-                <Textarea
-                  id="features"
-                  name="features"
-                  value={formData.features}
-                  onChange={handleInputChange}
-                  placeholder="4K Camera&#10;30 Minutes Flight Time&#10;Object Avoidance"
-                  rows={3}
-                />
-                <p className="text-sm text-gray-500">Enter each feature on a new line</p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="specifications">Technical Specifications</Label>
-                <Textarea
-                  id="specifications"
-                  name="specifications"
-                  value={formData.specifications}
-                  onChange={handleInputChange}
-                  placeholder="Detailed specifications of your product..."
-                  rows={3}
-                />
-              </div>
-            </div>
-            
-            {/* Product Images */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Product Images</h3>
-              
-              {/* Image upload area */}
-              <div 
-                onClick={() => fileInputRef.current?.click()} 
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition-colors"
-              >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                />
-                
-                <div className="flex flex-col items-center justify-center space-y-2">
-                  <Upload className="h-10 w-10 text-gray-400" />
-                  <h3 className="text-gray-700 font-medium">Upload Images</h3>
-                  <p className="text-sm text-gray-500">
-                    Drag & drop or click to upload (max 5 images)
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Max size: 1MB per image (JPG, PNG, WebP)
-                  </p>
-                </div>
-              </div>
-              
-              {/* Preview Images */}
-              {previewUrls.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-4">
-                  {previewUrls.map((url, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={url}
-                        alt={`Preview ${index + 1}`}
-                        className="h-24 w-full object-cover rounded-lg"
-                      />
+
+                {/* Image Previews */}
+                {previewUrls.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium">Selected Images ({previewUrls.length}/5)</h4>
                       <button
                         type="button"
-                        onClick={() => removeFile(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={removeAllImages}
+                        className="text-sm text-red-600 hover:text-red-800"
                       >
-                        <X className="h-3 w-3" />
+                        Remove All
                       </button>
-                      {index === 0 && (
-                        <span className="absolute bottom-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                          Cover
-                        </span>
-                      )}
                     </div>
-                  ))}
+                    
+                    {/* Processing indicator */}
+                    {isUploading && (
+                      <div className="flex items-center gap-2 text-sm text-blue-600">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Processing images... Please wait.
+                      </div>
+                    )}
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {previewUrls.map((url, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={url}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border"
+                            loading="lazy"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeSelectedImage(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Category</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="category">Product Category *</Label>
+                  <Select value={formData.category} onValueChange={(value) => handleSelectChange('category', value)}>
+                    <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map(category => (
+                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
-              
-              {/* Info about images */}
-              {previewUrls.length === 0 && (
-                <Alert className="bg-blue-50 text-blue-800 border-blue-200">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Product Images</AlertTitle>
-                  <AlertDescription>
-                    Adding product images is recommended but optional. Products with images tend to get more views and sales.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          </form>
-        </CardContent>
-        
-        <CardFooter className="flex justify-end space-x-4 border-t p-6">
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-4 mt-6">
+          <Button type="button" variant="outline" onClick={() => navigate('/dashboard/marketplace')} disabled={isSubmitting || isUploading}>Cancel</Button>
           <Button
-            variant="outline"
-            onClick={() => navigate('/dashboard/marketplace')}
-            disabled={isUploading || isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isUploading || isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700"
+            type="submit"
+            disabled={isSubmitting || isUploading}
+            className="min-w-[120px]"
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
+                Creating...
+              </>
+            ) : isUploading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
               </>
             ) : (
-              <>
-                <Check className="mr-2 h-4 w-4" />
-                Add Product
-              </>
+              'Create Product'
             )}
           </Button>
-        </CardFooter>
-      </Card>
+        </div>
+      </form>
     </div>
   );
 };

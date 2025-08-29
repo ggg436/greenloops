@@ -48,28 +48,28 @@ const Footer = () => {
             {/* Logo and Description */}
             <div className="lg:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-xl font-bold">K</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-800 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xl font-bold">G</span>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">KRISHAK AI</h2>
+                <h2 className="text-2xl font-bold text-gray-900">GREENLOOP</h2>
               </div>
               <p className="text-gray-600 mb-6 max-w-md">
-                Empowering Nepali farmers with cutting-edge AI technology to increase yields, reduce costs, and make better decisions through data-driven insights.
+                GreenLoop – Empowering people to build sustainable communities through smarter recycling and eco-friendly innovation.
               </p>
               <div className="flex space-x-4 mb-6">
-                <a href="https://www.facebook.com/sanjok.gc.98" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors">
+                <a href="https://www.facebook.com/sanjok.gc.98" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center transition-colors">
                   <Facebook className="h-5 w-5" />
                 </a>
-                <a href="#" className="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors">
+                <a href="#" className="w-10 h-10 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center transition-colors">
                   <Twitter className="h-5 w-5" />
                 </a>
-                <a href="#" className="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors">
+                <a href="#" className="w-10 h-10 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center transition-colors">
                   <Instagram className="h-5 w-5" />
                 </a>
-                <a href="#" className="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors">
+                <a href="#" className="w-10 h-10 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center transition-colors">
                   <Linkedin className="h-5 w-5" />
                 </a>
-                <a href="#" className="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors">
+                <a href="#" className="w-10 h-10 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center transition-colors">
                   <Youtube className="h-5 w-5" />
                 </a>
               </div>
@@ -154,7 +154,7 @@ const Footer = () => {
                 Subscribe to Our Newsletter
               </h3>
               <p className="text-gray-600 mb-4">
-                Stay updated with the latest agricultural tips, technology updates, and exclusive offers.
+                Stay updated with the latest recycling tips, sustainability updates, and exclusive eco-friendly offers.
               </p>
               <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="flex gap-2">
@@ -163,12 +163,12 @@ const Footer = () => {
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="flex-1 rounded-lg bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    className="flex-1 rounded-lg bg-white border-gray-300 focus:border-green-500 focus:ring-green-500"
                     required
                   />
                   <Button 
                     type="submit" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-lg"
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 rounded-lg"
                   >
                     <ArrowRight className="h-5 w-5" />
                   </Button>
@@ -189,36 +189,36 @@ const Footer = () => {
               </h3>
               
               <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                <MapPin className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
                 <p className="text-gray-600">
                   Kathmandu, Nepal
                 </p>
               </div>
               
               <div className="flex items-start gap-3">
-                <Phone className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                <Phone className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
                 <div>
-                  <p className="text-gray-600">+9779868597841</p>
+                  <p className="text-gray-600">+977-XXXXXXXXX</p>
                   <p className="text-gray-500 text-sm">Monday to Friday, 9am to 6pm</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-3">
-                <Mail className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                <Mail className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
                 <div>
-                  <a href="mailto:info@krishakai.com" className="text-gray-600 hover:text-blue-600 transition-colors">info@krishakai.com</a>
+                  <a href="mailto:info@greenloop.com" className="text-gray-600 hover:text-green-600 transition-colors">info@greenloop.com</a>
                   <br />
-                  <a href="mailto:sanjokgharti01@gmail.com" className="text-gray-600 hover:text-blue-600 transition-colors">sanjokgharti01@gmail.com</a>
+                  <a href="mailto:sanjokgharti01@gmail.com" className="text-gray-600 hover:text-green-600 transition-colors">sanjokgharti01@gmail.com</a>
                 </div>
               </div>
               
               <div className="flex items-start gap-3">
-                <Globe className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
-                <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors">www.krishakai.com</a>
+                <Globe className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                <a href="#" className="text-gray-600 hover:text-green-600 transition-colors">www.greenloop.com</a>
               </div>
               
               <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                <Clock className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
                 <div>
                   <p className="text-gray-600">Working Hours:</p>
                   <p className="text-gray-500 text-sm">Mon - Fri: 9:00 AM - 6:00 PM</p>
@@ -237,7 +237,7 @@ const Footer = () => {
                 allowFullScreen 
                 loading="lazy" 
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Krishak AI Location"
+                title="GreenLoop Location"
               ></iframe>
             </div>
           </div>
@@ -245,7 +245,7 @@ const Footer = () => {
           {/* Bottom Footer */}
           <div className="pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-600 text-sm mb-4 md:mb-0">
-              © Copyright {new Date().getFullYear()} Krishak AI. All Rights Reserved | Designed by <a href="https://www.facebook.com/sanjok.gc.98" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Sanjok Gharti</a>
+              © Copyright {new Date().getFullYear()} GreenLoop. All Rights Reserved | Designed by <a href="https://www.facebook.com/sanjok.gc.98" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Sanjok Gharti</a>
             </p>
             
             {/* Payment Methods */}

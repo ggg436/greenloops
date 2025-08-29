@@ -1,83 +1,47 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator, enableNetwork, disableNetwork } from "firebase/firestore";
+import { getAuth, connectAuthEmulator, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
-
-// Check if we should use Firebase emulators based on environment
-const useEmulators = false; // Set to true to use local emulators
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  projectId: "rock-perception-460403-b4",
-  appId: "1:623256116252:web:6d85681522391548f113d9",
-  storageBucket: "rock-perception-460403-b4.firebasestorage.app",
   apiKey: "AIzaSyC-6sz4wgSP43lU4fmOKRAnDxEG1eSRFl8",
+  authDomain: "rock-perception-460403-b4.firebaseapp.com",
+  databaseURL: "https://rock-perception-460403-b4-default-rtdb.firebaseio.com",
+  projectId: "rock-perception-460403-b4",
+  storageBucket: "rock-perception-460403-b4.firebasestorage.app",
   messagingSenderId: "623256116252",
-  authDomain: "rock-perception-460403-b4.firebaseapp.com"
+  appId: "1:623256116252:web:6d85681522391548f113d9"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
 // Initialize Firebase services
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 
-// Connect to emulators in development environment if enabled
-if (useEmulators) {
-  // Auth emulator typically runs on port 9099
-  connectAuthEmulator(auth, "http://localhost:9099");
-  
-  // Firestore emulator typically runs on port 8080
-  connectFirestoreEmulator(db, "localhost", 8080);
-  
-  // Storage emulator typically runs on port 9199
-  connectStorageEmulator(storage, "localhost", 9199);
-  
-  console.log("Using Firebase emulators");
+// Initialize Analytics only if supported
+export const analytics = isSupported().then(yes => yes ? getAnalytics(app) : null);
+
+// Configure Auth persistence and language
+setPersistence(auth, browserLocalPersistence);
+auth.languageCode = 'en';
+
+// Connect to emulators in development
+if (import.meta.env.DEV) {
+  try {
+    // Uncomment these lines if you want to use Firebase emulators
+    // connectAuthEmulator(auth, 'http://localhost:9099');
+    // connectFirestoreEmulator(db, 'localhost', 8080);
+    // connectStorageEmulator(storage, 'localhost', 9199);
+    console.log('Firebase initialized in development mode');
+  } catch (error) {
+    console.log('Firebase emulators not available:', error);
+  }
 }
 
-// Set up connection state monitoring
-let isFirestoreConnected = true;
-
-// Function to toggle online/offline mode
-export const toggleFirestoreNetwork = async (online: boolean) => {
-  if (online) {
-    try {
-      await enableNetwork(db);
-      console.log("Firestore network connection enabled");
-      isFirestoreConnected = true;
-    } catch (error) {
-      console.error("Failed to enable Firestore network:", error);
-    }
-  } else {
-    try {
-      await disableNetwork(db);
-      console.log("Firestore network connection disabled");
-      isFirestoreConnected = false;
-    } catch (error) {
-      console.error("Failed to disable Firestore network:", error);
-    }
-  }
-};
-
-// Connection state getter
-export const getFirestoreConnectionState = () => isFirestoreConnected;
-
-// Handle connection errors
-window.addEventListener('online', () => {
-  console.log("Browser reports online status");
-  toggleFirestoreNetwork(true).catch(console.error);
-});
-
-window.addEventListener('offline', () => {
-  console.log("Browser reports offline status");
-  toggleFirestoreNetwork(false).catch(console.error);
-});
-
-export { app, analytics, auth, db, storage }; 
+export default app; 

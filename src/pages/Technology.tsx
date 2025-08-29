@@ -33,7 +33,7 @@ const Technology = () => {
           <div>
             <h2 className="text-3xl font-bold text-blue-700 mb-6">Artificial Intelligence at the Core</h2>
             <p className="text-lg text-gray-700 mb-6">
-              At Krishak AI, we leverage advanced machine learning algorithms and deep neural networks to 
+              At GreenLoop, we leverage advanced machine learning algorithms and deep neural networks to 
               analyze agricultural data and provide insights that would be impossible through traditional methods.
             </p>
             <div className="space-y-4">

@@ -4,23 +4,23 @@ const StatsSection = () => {
   const stats = [
     {
       number: "98%",
-      label: "Farmer Satisfaction Rate",
-      description: "Our users report increased productivity and satisfaction"
+      label: "User Satisfaction Rate",
+      description: "Our users report increased satisfaction with recycling"
     },
     {
       number: "45%",
-      label: "Average Yield Increase",
-      description: "Farmers see significant improvements in crop yields"
+      label: "Reduction in household waste sent to landfills",
+      description: "Communities see significant improvements in waste reduction"
     },
     {
       number: "24/7",
       label: "Monitoring & Support",
-      description: "Continuous monitoring of your farm operations"
+      description: "Continuous monitoring of your recycling operations"
     },
     {
       number: "500k+",
-      label: "Acres Under Management",
-      description: "Total farmland being optimized with our platform"
+      label: "Successful pickups managed",
+      description: "Total recycling pickups being optimized with our platform"
     }
   ];
 
@@ -29,10 +29,10 @@ const StatsSection = () => {
       <div className="max-w-7xl mx-auto px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-zinc-900 mb-4">
-            Trusted by Farmers Worldwide
+            Trusted by Users Worldwide 🌍
           </h2>
           <p className="text-lg text-zinc-600 max-w-2xl mx-auto">
-            Join thousands of farmers who are already transforming their operations with our platform.
+            Join thousands of eco-conscious users who are already transforming their communities with our platform.
           </p>
         </div>
 

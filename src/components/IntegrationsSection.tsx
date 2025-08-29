@@ -1,44 +1,44 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, MessageCircle, ShoppingBag, MessageSquare, Twitter, Palette } from 'lucide-react';
+import { Mail, MessageCircle, ShoppingBag, MessageSquare, Award, Settings } from 'lucide-react';
 
 const IntegrationsSection = () => {
   const integrations = [
     {
-      name: 'Email Alerts',
-      description: 'Get real-time notifications about weather changes, crop status, and market prices directly in your inbox.',
+      name: '📩 Email Alerts',
+      description: 'Get notified about pickup schedules and recycling updates.',
       icon: Mail,
       color: 'text-red-600'
     },
     {
-      name: 'Farm Chat',
-      description: 'Connect with other farmers, share knowledge, and collaborate on farming best practices.',
+      name: '💬 EcoChat',
+      description: 'Connect with local recyclers, collectors, and communities.',
       icon: MessageCircle, 
       color: 'text-blue-600'
     },
     {
-      name: 'AgriMarket',
-      description: 'Integrated marketplace for buying and selling farming equipment, seeds, and produce.',
+      name: '🛒 EcoMarket',
+      description: 'Redeem GreenPoints for discounts, eco-products, or services.',
       icon: ShoppingBag,
       color: 'text-green-600'
     },
     {
-      name: 'Support Center',
-      description: 'Get instant help and support from our agricultural experts and community members.',
+      name: '🎧 Support Center',
+      description: '24/7 support for queries, guidance, and recycling tips.',
       icon: MessageSquare,
       color: 'text-blue-500'
     },
     {
-      name: 'Social Updates',
-      description: 'Share your farming journey and connect with the agricultural community on social media.',
-      icon: Twitter,
-      color: 'text-blue-400'
+      name: '📲 Social Badges',
+      description: 'Showcase your eco-impact and inspire others.',
+      icon: Award,
+      color: 'text-yellow-600'
     },
     {
-      name: 'Design Tools',
-      description: 'Plan and design your farm layouts with integrated design and visualization tools.',
-      icon: Palette,
-      color: 'text-yellow-600'
+      name: '🛠️ EcoTools',
+      description: 'Access calculators for carbon savings and waste reduction.',
+      icon: Settings,
+      color: 'text-purple-600'
     }
   ];
 
@@ -50,7 +50,7 @@ const IntegrationsSection = () => {
             Integrate with essential apps
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Connect your farming operations with powerful integrations designed to streamline your agricultural workflow and boost productivity.
+            GreenLoop works seamlessly with your daily tools, making recycling smarter and easier:
           </p>
         </div>
 
@@ -76,7 +76,7 @@ const IntegrationsSection = () => {
         </div>
 
         <div className="text-center">
-          <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+          <a href="#" className="text-green-600 hover:text-green-700 font-medium">
             Check all 1,593 applications
           </a>
         </div>

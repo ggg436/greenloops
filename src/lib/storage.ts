@@ -11,6 +11,39 @@ export const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+// Resize an image file on the client to reduce payload size
+export const resizeImageFile = async (
+  file: File,
+  options: { maxDimension?: number; outputType?: 'image/jpeg' | 'image/webp' | 'image/png'; quality?: number } = {}
+): Promise<File> => {
+  const { maxDimension = 1280, outputType = 'image/jpeg', quality = 0.8 } = options;
+  if (!file.type.startsWith('image/')) return file;
+
+  const imageDataUrl = await fileToBase64(file);
+  const img = document.createElement('img');
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error('Failed to load image for resizing'));
+    img.src = imageDataUrl;
+  });
+
+  const canvas = document.createElement('canvas');
+  let { width, height } = img;
+
+  const scale = Math.min(1, maxDimension / Math.max(width, height));
+  width = Math.round(width * scale);
+  height = Math.round(height * scale);
+
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return file;
+  ctx.drawImage(img, 0, 0, width, height);
+
+  const blob: Blob = await new Promise((resolve) => canvas.toBlob(b => resolve(b as Blob), outputType, quality));
+  return new File([blob], file.name.replace(/\.(png|jpg|jpeg|webp)$/i, '') + '.jpg', { type: outputType });
+};
+
 // Upload a file to Firebase Storage
 export const uploadFile = async (file: File, path: string) => {
   try {

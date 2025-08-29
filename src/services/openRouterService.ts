@@ -46,8 +46,8 @@ export async function getChatCompletion(messages: ChatMessage[]): Promise<string
       {
         headers: {
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'https://krishak-ai.com', // Fixed URL for OpenRouter's requirements
-          'X-Title': 'Krishak AI Chat',
+          'HTTP-Referer': 'https://greenloop.com', // Fixed URL for OpenRouter's requirements
+          'X-Title': 'GreenLoop Chat',
           'Content-Type': 'application/json',
         },
       }
@@ -140,8 +140,8 @@ export async function generateTreatmentRecommendations(
         {
           headers: {
             'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-            'HTTP-Referer': 'https://krishak-ai.com',
-            'X-Title': 'Krishak AI Treatment Recommendations',
+            'HTTP-Referer': 'https://greenloop.com',
+            'X-Title': 'GreenLoop Treatment Recommendations',
             'Content-Type': 'application/json',
           },
           timeout: 15000 // 15 seconds timeout

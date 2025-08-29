@@ -1,22 +1,22 @@
 import React from 'react';
-import { Smartphone, Leaf, CloudSun, ChevronRight } from 'lucide-react';
+import { Smartphone, User, Gift, ChevronRight } from 'lucide-react';
 
 const HowItWorksSection = () => {
   const steps = [
     {
       icon: Smartphone,
-      title: "Download Krishak AI",
-      description: "Get started with a simple download that works even on basic smartphones with limited internet access."
+      title: "1️⃣ Download GreenLoop",
+      description: "Install the app and start managing your recyclable waste with ease."
     },
     {
-      icon: Leaf,
-      title: "Register Your Farm",
-      description: "Enter your farm details, crop types, and location to receive personalized agricultural insights."
+      icon: User,
+      title: "2️⃣ Register Your Profile",
+      description: "Add household, business, or collector details for tailored recycling solutions."
     },
     {
-      icon: CloudSun,
-      title: "Grow Better Crops!",
-      description: "Access AI-powered recommendations, weather forecasts, and connect with the marketplace for better profits."
+      icon: Gift,
+      title: "3️⃣ Recycle Smarter, Earn Rewards",
+      description: "Schedule pickups, reduce waste, and earn GreenPoints for your contributions."
     }
   ];
 
@@ -25,11 +25,10 @@ const HowItWorksSection = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-gray-900">
-            How Krishak AI Works
+            How GreenLoop Works
           </h2>
           <p className="text-xl text-gray-600 max-w-4xl mx-auto">
-            Get personalized agricultural insights, connect with markets, and improve your yield—
-            designed specifically for Nepali farmers.
+            Get personalized recycling insights, schedule pickups, and track your eco-impact — designed for households, businesses, and collectors.
           </p>
         </div>
 
@@ -37,8 +36,8 @@ const HowItWorksSection = () => {
           {steps.map((step, index) => (
             <div key={index} className="flex flex-col md:flex-row items-center">
               <div className="text-center mb-6 md:mb-0">
-                <div className="w-20 h-20 mx-auto mb-6 bg-blue-100 rounded-full flex items-center justify-center">
-                  <step.icon className="w-10 h-10 text-blue-600" />
+                <div className="w-20 h-20 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
+                  <step.icon className="w-10 h-10 text-green-600" />
                 </div>
                 <h3 className="text-2xl font-bold mb-4 text-gray-900">
                   {step.title}

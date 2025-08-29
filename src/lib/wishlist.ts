@@ -59,6 +59,11 @@ export const addToWishlist = async (product: Product): Promise<string> => {
     throw new Error("User not authenticated");
   }
 
+  // Prevent users from adding their own products to wishlist
+  if (user.uid === product.sellerId) {
+    throw new Error("You cannot add your own products to wishlist");
+  }
+
   try {
     // Check if the item already exists in the wishlist
     const q = query(
@@ -145,6 +150,11 @@ export const toggleWishlistItem = async (product: Product): Promise<{ added: boo
   const user = auth.currentUser;
   if (!user) {
     throw new Error("User not authenticated");
+  }
+
+  // Prevent users from adding their own products to wishlist
+  if (user.uid === product.sellerId) {
+    throw new Error("You cannot add your own products to wishlist");
   }
 
   try {

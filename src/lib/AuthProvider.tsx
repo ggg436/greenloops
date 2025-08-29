@@ -21,10 +21,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // Initialize user profile when a user logs in
-        await initializeUserProfile(user.uid);
+        // Initialize user profile when a user logs in (non-blocking)
+        initializeUserProfile(user.uid).catch(console.error);
       }
       setUser(user);
       setLoading(false);

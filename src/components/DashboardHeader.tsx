@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Search, ChevronDown, Bell, User as UserIcon } from 'lucide-react';
+import { Search, ChevronDown, User as UserIcon } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthContext } from '@/lib/AuthProvider';
+import NotificationDropdown from './NotificationDropdown';
 
 const DashboardHeader: React.FC = () => {
   const location = useLocation();
@@ -63,10 +64,8 @@ const DashboardHeader: React.FC = () => {
 
       {/* Right section */}
       <div className="flex items-center gap-6">
-        <Button variant="ghost" className="relative p-2">
-          <Bell size={18} className="text-gray-700" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
-        </Button>
+        {/* Notification Bell with Dropdown */}
+        <NotificationDropdown />
 
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9">

@@ -208,7 +208,7 @@ const Team = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="flex items-center justify-center space-x-3">
               <Mail className="h-6 w-6 text-blue-600" />
-              <a href="mailto:info@krishakai.com" className="text-gray-700 hover:text-blue-600 transition-colors">info@krishakai.com</a>
+              <a href="mailto:info@greenloop.com" className="text-gray-700 hover:text-blue-600 transition-colors">info@greenloop.com</a>
             </div>
             <div className="flex items-center justify-center space-x-3">
               <PhoneCall className="h-6 w-6 text-blue-600" />

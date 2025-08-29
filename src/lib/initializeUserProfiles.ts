@@ -30,6 +30,7 @@ export const initializeUserProfile = async (userId?: string): Promise<UserProfil
         following: [],
         followersCount: 0,
         followingCount: 0,
+        coffeePoints: 10, // Start with 10 coffee points
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -45,7 +46,8 @@ export const initializeUserProfile = async (userId?: string): Promise<UserProfil
         followers: newUserProfile.followers,
         following: newUserProfile.following,
         followersCount: newUserProfile.followersCount,
-        followingCount: newUserProfile.followingCount
+        followingCount: newUserProfile.followingCount,
+        coffeePoints: newUserProfile.coffeePoints
       };
     } else {
       // Update user profile with followers/following fields if they don't exist
@@ -73,6 +75,11 @@ export const initializeUserProfile = async (userId?: string): Promise<UserProfil
         needsUpdate = true;
       }
       
+      if (userData.coffeePoints === undefined) {
+        updates.coffeePoints = 10;
+        needsUpdate = true;
+      }
+      
       if (needsUpdate) {
         updates.updatedAt = new Date();
         await setDoc(userRef, updates, { merge: true });
@@ -87,7 +94,8 @@ export const initializeUserProfile = async (userId?: string): Promise<UserProfil
         followers: userData.followers || [],
         following: userData.following || [],
         followersCount: userData.followersCount || 0,
-        followingCount: userData.followingCount || 0
+        followingCount: userData.followingCount || 0,
+        coffeePoints: userData.coffeePoints || 10
       };
     }
   } catch (error) {

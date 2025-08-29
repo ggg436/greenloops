@@ -30,8 +30,8 @@ const Header = () => {
                 <Sprout className="w-3 h-3 text-white absolute top-1 right-1" />
               </div>
           <div>
-            <h1 className="text-xl font-extrabold text-zinc-900 tracking-[4px] uppercase">
-              KRISHAK AI
+            <h1 className="text-xl font-semibold text-zinc-900 tracking-normal">
+              GreenLoop
             </h1>
           </div>
           </div>
@@ -48,7 +48,7 @@ const Header = () => {
                         <div className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md">
                           <h3 className="text-lg font-bold">Our Story</h3>
                           <p className="text-sm text-muted-foreground font-medium">
-                            Founded by Sanjok Gharti, Krishak AI is dedicated to transforming agriculture in Nepal and beyond through technology and innovation.
+                            Founded by Sanjok Gharti, GreenLoop is dedicated to transforming agriculture in Nepal and beyond through technology and innovation.
                           </p>
                         </div>
                       </NavigationMenuLink>
@@ -70,7 +70,7 @@ const Header = () => {
                           >
                             <h3 className="text-lg font-bold">Our Team</h3>
                             <p className="text-sm text-muted-foreground font-medium">
-                              Meet the experts and innovators behind Krishak AI
+                              Meet the experts and innovators behind GreenLoop
                             </p>
                           </div>
                         </NavigationMenuLink>
@@ -113,7 +113,7 @@ const Header = () => {
                               <h3 className="text-lg font-bold">Our Technology</h3>
                             </div>
                             <p className="text-sm text-muted-foreground font-medium">
-                              Discover the innovation behind Krishak AI's agricultural tools
+                              Discover the innovation behind GreenLoop's agricultural tools
                             </p>
                           </div>
                         </NavigationMenuLink>
@@ -168,7 +168,7 @@ const Header = () => {
                         <div className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md">
                           <h3 className="text-lg font-bold">Help Center</h3>
                           <p className="text-sm text-muted-foreground font-medium">
-                              Get support for all your Krishak AI platform questions
+                              Get support for all your GreenLoop platform questions
                           </p>
                         </div>
                       </NavigationMenuLink>
@@ -224,7 +224,7 @@ const Header = () => {
                         <div className="flex flex-col space-y-2 cursor-pointer hover:bg-accent hover:text-accent-foreground p-3 rounded-md">
                             <h3 className="text-lg font-bold">Regional Offices</h3>
                           <p className="text-sm text-muted-foreground font-medium">
-                              Find Krishak AI representatives in your district
+                              Find GreenLoop representatives in your district
                           </p>
                         </div>
                       </NavigationMenuLink>

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader } from '@/components/ui/card';
-import { getChatCompletion, ChatMessage } from '@/services/openRouterService';
+import { getChatCompletion, ChatMessage } from '@/services/geminiService';
 
 interface Message {
   id: string;
@@ -25,7 +25,7 @@ const ChatBot = () => {
       setMessages([
         {
           id: '1',
-          text: 'Hello! I\'m the Krishak AI assistant. I can help you with agricultural questions, farming advice, crop management, and more. How can I assist you today?',
+          text: 'Hello! I\'m the GreenLoop assistant. I can help you with agricultural questions, farming advice, crop management, and more. How can I assist you today?',
           isUser: false,
           timestamp: new Date(),
         }
@@ -58,7 +58,7 @@ const ChatBot = () => {
       const chatHistory: ChatMessage[] = [
         {
           role: 'system',
-          content: 'You are a helpful AI assistant for Krishak AI, a platform focused on agriculture. Your name is AgriBot. You provide assistance with farming, crop management, weather analysis, and agricultural techniques. Keep responses concise, practical, and focused on agriculture. Be friendly and supportive to farmers.'
+          content: 'You are a helpful AI assistant for GreenLoop, a platform focused on agriculture. Your name is AgriBot. You provide assistance with farming, crop management, weather analysis, and agricultural techniques. Keep responses concise, practical, and focused on agriculture. Be friendly and supportive to farmers.'
         }
       ];
       
@@ -178,7 +178,7 @@ const ChatBot = () => {
                 </div>
               </div>
               <div>
-                <p className="font-medium text-sm">Chat with Krishak AI</p>
+                <p className="font-medium text-sm">Chat with GreenLoop</p>
                 <p className="text-xs text-blue-100">Your agricultural assistant</p>
               </div>
             </div>
@@ -224,7 +224,7 @@ const ChatBot = () => {
               </div>
               
               <div>
-                <p className="font-medium text-blue-800">Welcome to Krishak AI! 🌾</p>
+                <p className="font-medium text-blue-800">Welcome to GreenLoop! 🌾</p>
                 <p className="text-sm text-blue-600">Ask me anything about farming and agriculture</p>
               </div>
             </div>

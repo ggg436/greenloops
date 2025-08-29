@@ -734,13 +734,13 @@ const Settings = () => {
                     id="workspace-name" 
                     type="text" 
                     className="w-full p-2 border border-border rounded-md bg-background"
-                    defaultValue="Krishak AI Team"
+                    defaultValue="GreenLoop Team"
                   />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="workspace-url" className="text-sm font-medium">Workspace URL</label>
                   <div className="flex items-center">
-                    <span className="bg-muted px-3 py-2 rounded-l-md border border-border border-r-0 text-muted-foreground">krishakai.com/</span>
+                    <span className="bg-muted px-3 py-2 rounded-l-md border border-border border-r-0 text-muted-foreground">greenloop.com/</span>
                     <input 
                       id="workspace-url" 
                       type="text" 

@@ -11,7 +11,7 @@ const SuccessStories = () => {
       location: "Kavrepalanchok",
       crop: "Rice and Vegetables",
       image: "/farmers/farmer1.jpg", // These images would need to be added to the public folder
-      quote: "With Krishak AI's disease detection, I identified a fungal infection early and saved 80% of my tomato crop. My income has increased by 35% since I started using the app.",
+      quote: "With GreenLoop's disease detection, I identified a fungal infection early and saved 80% of my tomato crop. My income has increased by 35% since I started using the app.",
       results: [
         "40% increase in crop yield",
         "Early detection of plant diseases",
@@ -56,7 +56,7 @@ const SuccessStories = () => {
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Success Stories</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Hear from real Nepali farmers who have transformed their farms using Krishak AI technology
+            Hear from real Nepali farmers who have transformed their farms using GreenLoop technology
           </p>
         </div>
 
@@ -65,7 +65,7 @@ const SuccessStories = () => {
           <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl">
             <CardContent className="pt-8 pb-8 text-center">
               <div className="text-4xl md:text-5xl font-bold text-green-600 mb-2">5,000+</div>
-              <p className="text-lg text-gray-700">Farmers Using Krishak AI</p>
+              <p className="text-lg text-gray-700">Farmers Using GreenLoop</p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-sky-50 rounded-2xl">
@@ -96,10 +96,10 @@ const SuccessStories = () => {
                 <Quote className="text-white h-6 w-6" />
               </div>
               <h2 className="text-3xl font-bold text-white mb-6">
-                "Krishak AI has completely transformed my approach to farming. What used to be guesswork is now data-driven decision making."
+                "GreenLoop has completely transformed my approach to farming. What used to be guesswork is now data-driven decision making."
               </h2>
               <p className="text-xl text-blue-100 mb-8">
-                I've been farming for 20 years, but in just one season with Krishak AI, I learned techniques that increased my rice yield by 40%. The disease detection feature alone saved my entire crop from blast disease.
+                I've been farming for 20 years, but in just one season with GreenLoop, I learned techniques that increased my rice yield by 40%. The disease detection feature alone saved my entire crop from blast disease.
               </p>
               <div>
                 <p className="text-white font-bold text-lg">Krishna Bahadur Thapa</p>
@@ -138,7 +138,7 @@ const SuccessStories = () => {
                   <p className="text-lg text-gray-600">{story.crop} Farmer, {story.location}</p>
                 </div>
                 <div>
-                  <h4 className="text-lg font-bold text-gray-900 mb-3">Results with Krishak AI:</h4>
+                  <h4 className="text-lg font-bold text-gray-900 mb-3">Results with GreenLoop:</h4>
                   <ul className="space-y-2">
                     {story.results.map((result, i) => (
                       <li key={i} className="flex items-start gap-3">
@@ -175,7 +175,7 @@ const SuccessStories = () => {
                       "The weather alerts have saved my crops multiple times from unexpected rain. This app is worth every rupee.",
                       "I've been able to connect with buyers directly and get 20% better prices than through middlemen.",
                       "The plant disease identification is like having an expert agronomist in my pocket at all times.",
-                      "I used to struggle with timing my planting, but now I follow Krishak AI's recommendations and my yields have improved.",
+                      "I used to struggle with timing my planting, but now I follow GreenLoop's recommendations and my yields have improved.",
                       "The market price predictions helped me decide when to sell my produce and increased my profits.",
                       "As a woman farmer, this app has given me access to knowledge that was previously hard to obtain in my village."
                     ][i]}

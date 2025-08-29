@@ -3,10 +3,10 @@ import { Check, Smartphone, Apple } from 'lucide-react';
 
 const MobileAppSection = () => {
   const features = [
-    "Easy transactions",
-    "Received money", 
-    "Flexible for use",
-    "Record documents"
+    "Smart recycling tracking",
+    "Earn GreenPoints rewards", 
+    "Schedule pickups easily",
+    "Track eco-impact"
   ];
 
   return (
@@ -17,11 +17,10 @@ const MobileAppSection = () => {
           <div className="space-y-8">
             <div>
               <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
-                What are you waiting for, get the app now!
+                What are you waiting for?
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                FarmConnect gives you the tools & features you need to manage your agricultural business. 
-                Get real-time insights, connect with buyers, and track your farm's progress all in one app.
+                Download the GreenLoop app today and start recycling smarter! Get real-time insights, connect with collectors, and track your eco-impact all in one app.
               </p>
             </div>
 
@@ -57,6 +56,11 @@ const MobileAppSection = () => {
                 </div>
               </button>
             </div>
+
+            {/* Available on text */}
+            <div className="text-center text-sm text-muted-foreground">
+              📱 Available on:
+            </div>
           </div>
 
           {/* Right Phone Mockup */}
@@ -69,52 +73,57 @@ const MobileAppSection = () => {
                   <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-foreground rounded-b-2xl z-10"></div>
                   
                   {/* App Interface */}
-                  <div className="pt-12 px-6 h-full bg-gradient-to-br from-muted/20 to-primary/5">
+                  <div className="pt-12 px-6 h-full bg-gradient-to-br from-green-50 to-emerald-50">
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
                       <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                       </svg>
+                      <div className="text-green-600 font-bold">🌱 GreenLoop</div>
                       <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zM12 13a1 1 0 110-2 1 1 0 010 2zM12 20a1 1 0 110-2 1 1 0 010 2z" />
                       </svg>
                     </div>
 
                     <div className="text-muted-foreground text-sm mb-2">This month</div>
-                    <div className="text-2xl font-bold text-foreground mb-6">Farm Analytics</div>
+                    <div className="text-2xl font-bold text-foreground mb-6">Recycling Analytics</div>
 
                     {/* Chart Area */}
-                    <div className="bg-card rounded-2xl p-4 mb-4 shadow-sm">
+                    <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-green-200">
                       <div className="flex justify-end mb-4">
-                        <div className="w-24 h-12 bg-primary/10 rounded-lg"></div>
+                        <div className="w-24 h-12 bg-green-100 rounded-lg"></div>
                       </div>
                       <div className="flex items-end space-x-2 h-32 mb-4">
                         {[40, 60, 80, 100, 85, 70].map((height, i) => (
-                          <div key={i} className={`bg-primary rounded-t flex-1 ${i === 4 ? 'bg-foreground' : ''}`} style={{height: `${height}%`}}></div>
+                          <div key={i} className={`bg-green-500 rounded-t flex-1 ${i === 4 ? 'bg-green-700' : ''}`} style={{height: `${height}%`}}></div>
                         ))}
                       </div>
                     </div>
 
                     {/* Stats Section */}
-                    <div className="bg-card rounded-2xl p-4 shadow-sm">
-                      <div className="text-sm text-muted-foreground mb-2">Crop Distribution</div>
-                      <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-lg font-bold">
-                          44%
+                    <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-200">
+                      <div className="text-sm text-muted-foreground mb-2">Waste Distribution</div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <span className="text-sm">Recycled</span>
+                          </div>
+                          <span className="text-sm font-medium">65%</span>
                         </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-muted-foreground">Wheat</span>
-                            <span className="text-orange-500">25%</span>
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <span className="text-sm">Compost</span>
                           </div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-muted-foreground">Corn</span>
-                            <span className="text-blue-500">20%</span>
+                          <span className="text-sm font-medium">25%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                            <span className="text-sm">Landfill</span>
                           </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Rice</span>
-                            <span className="text-green-500">10%</span>
-                          </div>
+                          <span className="text-sm font-medium">10%</span>
                         </div>
                       </div>
                     </div>

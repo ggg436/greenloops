@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, ShoppingBag, Heart, Package, Star, MapPin, Filter, LayoutGrid, List, ShoppingCart, ChevronDown, User, Loader2, Trash2 } from 'lucide-react';
+import { Search, ShoppingBag, Heart, Package, Star, MapPin, Filter, LayoutGrid, List, ShoppingCart, ChevronDown, User, Loader2, Trash2, Coffee } from 'lucide-react';
 import { useAuthContext } from '@/lib/AuthProvider';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Product, getProducts, deleteProduct } from '@/lib/products';
+import { Product, getProducts, deleteProduct, debugGetAllProducts, manuallyFetchProducts } from '@/lib/products';
+import { sendProductPurchaseNotification } from '@/lib/notifications';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -21,6 +22,8 @@ import Cart from '@/components/Cart';
 import Wishlist from '@/components/Wishlist';
 import { addToCart } from '@/lib/cart';
 import { toggleWishlistItem, isInWishlist } from '@/lib/wishlist';
+import { CoffeeIcon } from '@/components/CoffeeIcon';
+import { getCoffeePointsBalance } from '@/lib/coffeePoints';
 
 const Marketplace = () => {
   const navigate = useNavigate();
@@ -35,6 +38,7 @@ const Marketplace = () => {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [wishlistStatus, setWishlistStatus] = useState<Record<string, boolean>>({});
   const [processingProductId, setProcessingProductId] = useState<string | null>(null);
+  const [coffeePointsBalance, setCoffeePointsBalance] = useState(0);
 
   // Get user's display name or email
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'Guest';
@@ -56,13 +60,45 @@ const Marketplace = () => {
   // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
+      console.log('Marketplace: Fetching products with category:', selectedCategory);
       setLoading(true);
       try {
         const result = await getProducts(undefined, 12, selectedCategory || undefined);
+        console.log('Marketplace: Received products result:', result);
+        console.log('Marketplace: Products count:', result.products.length);
+        console.log('Marketplace: Products data:', result.products);
         setProducts(result.products);
+        
+        // If no products received, try manual fetch as fallback
+        if (result.products.length === 0) {
+          console.log('Marketplace: No products from regular fetch, trying manual fetch...');
+          try {
+            const manualProducts = await manuallyFetchProducts();
+            console.log('Marketplace: Manual fetch returned', manualProducts.length, 'products');
+            if (manualProducts.length > 0) {
+              setProducts(manualProducts);
+              toast.success(`Loaded ${manualProducts.length} products manually`);
+            }
+          } catch (manualError) {
+            console.error('Marketplace: Manual fetch fallback failed:', manualError);
+          }
+        }
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Marketplace: Error fetching products:', error);
         toast.error('Failed to load products');
+        
+        // Try manual fetch as fallback on error
+        console.log('Marketplace: Trying manual fetch as fallback...');
+        try {
+          const manualProducts = await manuallyFetchProducts();
+          console.log('Marketplace: Manual fetch fallback returned', manualProducts.length, 'products');
+          if (manualProducts.length > 0) {
+            setProducts(manualProducts);
+            toast.success(`Loaded ${manualProducts.length} products manually`);
+          }
+        } catch (manualError) {
+          console.error('Marketplace: Manual fetch fallback failed:', manualError);
+        }
       } finally {
         setLoading(false);
       }
@@ -94,6 +130,26 @@ const Marketplace = () => {
       checkWishlistStatus();
     }
   }, [products, user]);
+
+  // Fetch coffee points balance
+  const fetchCoffeePointsBalance = async () => {
+    if (!user) {
+      setCoffeePointsBalance(0);
+      return;
+    }
+    
+    try {
+      const balance = await getCoffeePointsBalance();
+      setCoffeePointsBalance(balance);
+    } catch (error) {
+      console.error('Error fetching coffee points balance:', error);
+      setCoffeePointsBalance(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchCoffeePointsBalance();
+  }, [user]);
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,6 +194,36 @@ const Marketplace = () => {
     }
   };
 
+  // Debug function to check all products in database
+  const handleDebugProducts = async () => {
+    try {
+      console.log('Marketplace: Testing debug function...');
+      const allProducts = await debugGetAllProducts();
+      console.log('Marketplace: Debug function returned', allProducts.length, 'products');
+      toast.success(`Debug: Found ${allProducts.length} products in database`);
+    } catch (error) {
+      console.error('Marketplace: Debug function error:', error);
+      toast.error('Debug function failed');
+    }
+  };
+
+  // Test manual fetching of products
+  const handleManualFetch = async () => {
+    try {
+      console.log('Marketplace: Testing manual fetch...');
+      const manualProducts = await manuallyFetchProducts();
+      console.log('Marketplace: Manual fetch returned', manualProducts.length, 'products');
+      
+      // Update the products state with manually fetched products
+      setProducts(manualProducts);
+      
+      toast.success(`Manual Fetch: Found ${manualProducts.length} products in database`);
+    } catch (error) {
+      console.error('Marketplace: Manual fetch error:', error);
+      toast.error('Manual fetch failed');
+    }
+  };
+
   // Add these handler functions
   const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
     e.stopPropagation();
@@ -147,10 +233,28 @@ const Marketplace = () => {
       return;
     }
     
+    // Prevent users from adding their own products to cart
+    if (user.uid === product.sellerId) {
+      toast.error('You cannot add your own products to cart');
+      return;
+    }
+    
     setProcessingProductId(product.id);
     try {
+      // Send notification to product owner
+      await sendProductPurchaseNotification(
+        product.id,
+        product.title,
+        product.sellerId,
+        user.uid,
+        user.displayName || user.email?.split('@')[0] || 'Anonymous',
+        user.photoURL || '',
+        product.listingType || 'sell'
+      );
+      
+      // Add to cart
       await addToCart(product, 1);
-      toast.success(`${product.title} added to cart!`);
+      toast.success(`${product.title} added to cart! Seller notified of your interest.`);
     } catch (error: any) {
       console.error('Error adding to cart:', error);
       toast.error(error.message || 'Failed to add to cart');
@@ -164,6 +268,12 @@ const Marketplace = () => {
     
     if (!user) {
       toast.error('Please log in to add items to wishlist');
+      return;
+    }
+    
+    // Prevent users from adding their own products to wishlist
+    if (user.uid === product.sellerId) {
+      toast.error('You cannot add your own products to wishlist');
       return;
     }
     
@@ -242,6 +352,12 @@ const Marketplace = () => {
               {user ? (
                 // Show user profile when logged in
                 <div className="flex items-center gap-3 ml-2">
+                  {/* Coffee points display */}
+                  <Link to="/dashboard/coffee-redemption" className="flex items-center gap-2 px-3 py-1 bg-orange-50 border border-orange-200 rounded-full hover:bg-orange-100 transition-colors cursor-pointer">
+                    <Coffee className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm font-medium text-orange-700">{coffeePointsBalance}</span>
+                  </Link>
+                  
                   <Avatar className="h-9 w-9">
                     {user?.photoURL ? (
                       <AvatarImage src={user.photoURL} referrerPolicy="no-referrer" />
@@ -292,12 +408,28 @@ const Marketplace = () => {
               </nav>
             </div>
             
-            <button 
-              onClick={() => user ? navigate('/dashboard/marketplace/add-product') : navigate('/login')}
-              className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
-            >
-              Add Product
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => user ? navigate('/dashboard/marketplace/add-product') : navigate('/login')}
+                className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+              >
+                Add Product
+              </button>
+              
+              <button 
+                onClick={handleDebugProducts}
+                className="text-sm bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors"
+              >
+                Debug Products
+              </button>
+              
+              <button 
+                onClick={handleManualFetch}
+                className="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+              >
+                Manual Fetch
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -438,15 +570,30 @@ const Marketplace = () => {
                       onClick={() => handleProductClick(product.id)}
                     >
                       <div className="absolute top-2 right-2 flex flex-col gap-2 z-20">
-                        <button 
-                          className="p-2 hover:bg-gray-100 rounded"
-                          onClick={(e) => handleToggleWishlist(e, product)}
-                          disabled={processingProductId === product.id}
-                        >
-                          <Heart 
-                            className={`w-4 h-4 ${wishlistStatus[product.id] ? 'text-red-500 fill-red-500' : 'text-gray-400'}`}
+                        {/* Coffee icon - only show for products not owned by current user */}
+                        {user && user.uid !== product.sellerId && (
+                          <CoffeeIcon
+                            toUserId={product.sellerId}
+                            toUserName={product.sellerName}
+                            productId={product.id}
+                            productTitle={product.title}
+                            size="sm"
+                            onPointsSent={fetchCoffeePointsBalance}
                           />
-                        </button>
+                        )}
+                        
+                        {/* Only show wishlist button for products not owned by current user */}
+                        {user && user.uid !== product.sellerId && (
+                          <button 
+                            className="p-2 hover:bg-gray-100 rounded"
+                            onClick={(e) => handleToggleWishlist(e, product)}
+                            disabled={processingProductId === product.id}
+                          >
+                            <Heart 
+                              className={`w-4 h-4 ${wishlistStatus[product.id] ? 'text-red-500 fill-red-500' : 'text-gray-400'}`}
+                            />
+                          </button>
+                        )}
                         <button className="p-2 hover:bg-gray-100 rounded">
                           <Package className="w-4 h-4 text-gray-400" />
                         </button>
@@ -469,28 +616,40 @@ const Marketplace = () => {
                       {/* Hover overlay with buttons */}
                       <div className="absolute inset-0 bg-black/70 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
                         <div className="flex flex-col gap-3">
-                          <button 
-                            onClick={(e) => handleAddToCart(e, product)}
-                            disabled={processingProductId === product.id}
-                            className="flex items-center gap-2 bg-white text-gray-800 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
-                          >
-                            {processingProductId === product.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <ShoppingCart className="w-4 h-4" />
-                            )}
-                            Add to Cart
-                          </button>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Buy now logic
-                              navigate(`/dashboard/marketplace/${product.id}?buy=true`);
-                            }}
-                            className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
-                          >
-                            Buy Now
-                          </button>
+                          {/* Only show Add to Cart and Buy Now for products not owned by current user */}
+                          {user && user.uid !== product.sellerId ? (
+                            <>
+                              <button 
+                                onClick={(e) => handleAddToCart(e, product)}
+                                disabled={processingProductId === product.id}
+                                className="flex items-center gap-2 bg-white text-gray-800 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+                              >
+                                {processingProductId === product.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <ShoppingCart className="w-4 h-4" />
+                                )}
+                                Add to Cart
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Buy now logic
+                                  navigate(`/dashboard/marketplace/${product.id}?buy=true`);
+                                }}
+                                className="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                              >
+                                Buy Now
+                              </button>
+                            </>
+                          ) : (
+                            /* Show message for own products */
+                            <div className="text-center text-white">
+                              <Package className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                              <p className="text-sm">This is your product</p>
+                              <p className="text-xs text-gray-300 mt-1">You cannot buy your own items</p>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -503,22 +662,22 @@ const Marketplace = () => {
                         }}
                       />
                       <h3 className="text-sm text-gray-800 mb-2 line-clamp-2 h-10">{product.title}</h3>
-                      <p className="text-lg font-semibold text-gray-800 mb-2">${product.price.toFixed(2)}</p>
+                      <p className="text-lg font-semibold text-gray-800 mb-2">Rs. {product.price.toFixed(2)}</p>
                       <div className="flex items-center justify-center gap-1 mb-1">
                         {Array.from({ length: 5 }).map((_, idx) => (
                           <Star 
                             key={idx} 
                             className={`w-3 h-3 ${
-                              idx < Math.floor(product.rating)
+                              idx < Math.floor(product.averageRating || 0)
                                 ? 'fill-yellow-400 text-yellow-400'
-                                : idx < product.rating 
+                                : idx < (product.averageRating || 0)
                                   ? 'fill-yellow-400/50 text-yellow-400'
                                   : 'fill-gray-300 text-gray-300'
                             }`} 
                           />
                         ))}
                       </div>
-                      <span className="text-xs text-gray-500">{product.reviews || 0}</span>
+                      <span className="text-xs text-gray-500">{product.totalRatings || 0} reviews</span>
                     </div>
                   ))
                 )}

@@ -6,39 +6,39 @@ const TestimonialsSection = () => {
 
   const testimonials = [
     {
-      name: 'Jenny Wilson',
-      company: 'Grower.io',
+      name: 'A GreenLoop User',
+      company: 'Community Member',
       rating: 5,
-      testimonial: 'We love AgriTech! Our farm managers were using it for their projects, so we already knew what kind of results they wanted.',
-      bgColor: 'bg-red-500'
-    },
-    {
-      name: 'Devon Lane', 
-      company: 'FarmDesign.co',
-      rating: 5,
-      testimonial: 'We love AgriTech! Our farm managers were using it for their projects, so we already knew what kind of results they wanted.',
-      bgColor: 'bg-yellow-500'
-    },
-    {
-      name: 'Sarah Chen',
-      company: 'CropTech.io',
-      rating: 5,
-      testimonial: 'The analytics and insights provided have completely transformed how we manage our farming operations. Highly recommended!',
+      testimonial: 'With GreenLoop, recycling is no longer a burden. I earn rewards, track my eco-impact, and feel proud to make a difference.',
       bgColor: 'bg-green-500'
     },
     {
-      name: 'Michael Rodriguez',
-      company: 'SmartFarm.co',
+      name: 'Sarah Chen', 
+      company: 'Eco-conscious Household',
       rating: 5,
-      testimonial: 'AgriTech has streamlined our processes and increased our productivity by 40%. It\'s been a game-changer for our business.',
+      testimonial: 'The app makes recycling so easy! I love earning GreenPoints and seeing how much waste I\'ve diverted from landfills.',
+      bgColor: 'bg-emerald-500'
+    },
+    {
+      name: 'Michael Rodriguez',
+      company: 'Local Collector',
+      rating: 5,
+      testimonial: 'GreenLoop has streamlined our pickup operations and increased community participation by 40%. It\'s been a game-changer!',
       bgColor: 'bg-blue-500'
     },
     {
       name: 'Emma Thompson',
-      company: 'GreenGrow.io',
+      company: 'Business Owner',
       rating: 5,
       testimonial: 'The user interface is incredibly intuitive and the support team is always there when we need them. Fantastic platform!',
       bgColor: 'bg-purple-500'
+    },
+    {
+      name: 'Devon Lane',
+      company: 'Environmental Advocate',
+      rating: 5,
+      testimonial: 'GreenLoop is transforming how communities think about waste. It\'s not just recycling—it\'s building a sustainable future.',
+      bgColor: 'bg-teal-500'
     }
   ];
 
@@ -69,7 +69,7 @@ const TestimonialsSection = () => {
     <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <div className="text-blue-600 font-medium mb-2">3940+ Happy Farming Users</div>
+          <div className="text-green-600 font-medium mb-2">5000+ Happy Eco-Conscious Users</div>
           <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
             Don't just take our words
           </h2>
@@ -89,7 +89,7 @@ const TestimonialsSection = () => {
                     <div className={`w-16 h-16 rounded-lg ${testimonial.bgColor} flex-shrink-0`}></div>
                     <div className="flex gap-1">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 fill-blue-500 text-blue-500" />
+                        <Star key={i} className="w-5 h-5 fill-green-500 text-green-500" />
                       ))}
                     </div>
                   </div>

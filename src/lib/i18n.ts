@@ -12,35 +12,19 @@ const resources = {
       'common.nepali': 'Nepali',
       'common.dashboard': 'Dashboard',
       'common.feed': 'Feed',
-      'common.drPlant': 'Dr Plant',
       'common.data': 'Data',
       'common.marketplace': 'Marketplace',
-      'common.orders': 'Orders',
-      'common.transactions': 'Transactions',
       'common.weather': 'Weather',
       'common.pricing': 'Pricing',
       'common.settings': 'Settings',
       'common.help': 'Help',
+      'common.coffeeRedemption': 'Coffee Redemption',
       'common.signOut': 'Sign Out',
       'common.save': 'Save',
-      'common.messaging': 'Messaging',
+
       'common.loading': 'Loading',
       
-      // Messaging translations
-      'messaging.description': 'Connect and chat with other users in real-time',
-      'messaging.searchChats': 'Search chats',
-      'messaging.recentChats': 'Recent Chats',
-      'messaging.newChat': 'New Chat',
-      'messaging.noChats': 'No chats found',
-      'messaging.noChat': 'No chat selected',
-      'messaging.selectChat': 'Select a chat from the list or start a new conversation',
-      'messaging.startChat': 'Start New Chat',
-      'messaging.typeMessage': 'Type a message...',
-      'messaging.selectUser': 'Select User',
-      'messaging.searchUsers': 'Search users',
-      'messaging.noUsers': 'No users found',
-      'messaging.noMessages': 'No messages yet. Start the conversation!',
-      'messaging.allUsers': 'All Users',
+
       
       // Time periods
       'time.thisWeek': 'This Week',
@@ -103,7 +87,6 @@ const resources = {
       // Stats cards
       'stats.todaysYield': "TODAY'S YIELD",
       'stats.totalRevenue': 'TOTAL REVENUE',
-      'stats.totalOrders': 'TOTAL ORDERS',
       'stats.totalFarmers': 'TOTAL FARMERS',
       
       // Currency
@@ -153,21 +136,7 @@ const resources = {
       'dashboard.30Days': '30 Days',
       'dashboard.7Days': '7 Days',
       
-      // Transactions Section
-      'transactions.title': 'Transactions',
-      'transactions.seeAll': 'See All Transactions →',
-      'transactions.summary': 'Recent activity and financial transactions',
-      'transactions.type': 'Type',
-      'transactions.vendor': 'Vendor',
-      'transactions.amount': 'Amount',
-      'transactions.date': 'Date',
-      'transactions.status': 'Status',
-      'transactions.completed': 'Completed',
-      'transactions.pending': 'Pending',
-      'transactions.fertilizer': 'Fertilizer Purchase',
-      'transactions.seed': 'Seed Order',
-      'transactions.equipment': 'Equipment Rental',
-      'transactions.pesticide': 'Pesticide Purchase',
+
       
       // Farmers Section
       'farmers.title': 'Recent Farmers',
@@ -220,15 +189,13 @@ const resources = {
       'common.nepali': 'नेपाली',
       'common.dashboard': 'ड्यासबोर्ड',
       'common.feed': 'फिड',
-      'common.drPlant': 'डा. प्लान्ट',
       'common.data': 'डाटा',
       'common.marketplace': 'मार्केटप्लेस',
-      'common.orders': 'अर्डरहरू',
-      'common.transactions': 'ट्रान्सफरहरू',
       'common.weather': 'मौसम',
       'common.pricing': 'मूल्य निर्धारण',
       'common.settings': 'सेटिङ्स',
       'common.help': 'मद्दत',
+      'common.coffeeRedemption': 'कफी पोइन्ट रिडेम्प्शन',
       'common.signOut': 'साइन आउट',
       'common.save': 'सुरक्षित गर्नुहोस्',
       'common.messaging': 'संदेशहरू',
@@ -307,7 +274,6 @@ const resources = {
       // Stats cards
       'stats.todaysYield': "आजको उत्पादन",
       'stats.totalRevenue': 'कुल राजस्व',
-      'stats.totalOrders': 'कुल अर्डरहरू',
       'stats.totalFarmers': 'कुल किसानहरू',
       
       // Currency
@@ -357,21 +323,7 @@ const resources = {
       'dashboard.30Days': '३० दिन',
       'dashboard.7Days': '७ दिन',
       
-      // Transactions Section
-      'transactions.title': 'कारोबारहरू',
-      'transactions.seeAll': 'सबै कारोबारहरू हेर्नुहोस् →',
-      'transactions.summary': 'हालैका गतिविधि र वित्तीय कारोबारहरू',
-      'transactions.type': 'प्रकार',
-      'transactions.vendor': 'विक्रेता',
-      'transactions.amount': 'रकम',
-      'transactions.date': 'मिति',
-      'transactions.status': 'स्थिति',
-      'transactions.completed': 'पूरा भयो',
-      'transactions.pending': 'प्रक्रियामा',
-      'transactions.fertilizer': 'मल खरिद',
-      'transactions.seed': 'बीउ अर्डर',
-      'transactions.equipment': 'उपकरण भाडा',
-      'transactions.pesticide': 'कीटनाशक खरिद',
+
       
       // Farmers Section
       'farmers.title': 'हालका किसानहरू',

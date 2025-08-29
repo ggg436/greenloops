@@ -112,7 +112,7 @@ const Help = () => {
 
   const tutorials = [
     {
-      title: "Getting Started with Krishak AI",
+      title: "Getting Started with GreenLoop",
       duration: "5 min",
       type: "Video",
       description: "Complete walkthrough of setting up your account and first farm profile",
@@ -143,7 +143,7 @@ const Help = () => {
       title: "Mobile App Usage Guide",
       duration: "6 min",
       type: "Guide",
-      description: "How to use Krishak AI on your mobile device for field updates",
+      description: "How to use GreenLoop on your mobile device for field updates",
       level: "Beginner"
     },
     {
@@ -251,7 +251,7 @@ const Help = () => {
                   Tutorials & Guides
                 </CardTitle>
                 <CardDescription>
-                  Step-by-step guides to help you get the most out of Krishak AI
+                  Step-by-step guides to help you get the most out of GreenLoop
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -317,7 +317,7 @@ const Help = () => {
                     <Mail className="w-5 h-5 text-blue-600" />
                     <div>
                       <p className="font-medium">Email Support</p>
-                      <p className="text-sm text-muted-foreground">info@krishakai.com</p>
+                      <p className="text-sm text-muted-foreground">info@greenloop.com</p>
                       <p className="text-xs text-muted-foreground">Response within 24 hours</p>
                     </div>
                   </div>

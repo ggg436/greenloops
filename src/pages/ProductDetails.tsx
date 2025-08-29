@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, Heart, Share2, ShoppingCart, Shield, Truck, RotateCcw, Award, Loader2, Trash2, Edit } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, Star, Heart, Share2, ShoppingCart, Shield, Truck, RotateCcw, Award, Loader2, Trash2, Edit, Package, Coffee } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { getProductById, deleteProduct } from '@/lib/products';
 import { toast } from 'sonner';
 import { useAuthContext } from '@/lib/AuthProvider';
 import { Product } from '@/lib/products';
+import { sendProductPurchaseNotification } from '@/lib/notifications';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,8 +22,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import Cart from '@/components/Cart';
 import Wishlist from '@/components/Wishlist';
+import ProductComments from '@/components/ProductComments';
 import { addToCart } from '@/lib/cart';
 import { isInWishlist, toggleWishlistItem } from '@/lib/wishlist';
+import { CoffeeIcon } from '@/components/CoffeeIcon';
+import { getCoffeePointsBalance } from '@/lib/coffeePoints';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -38,6 +42,7 @@ const ProductDetails = () => {
   const [isInWish, setIsInWish] = useState(false);
   const [processingWishlist, setProcessingWishlist] = useState(false);
   const [processingCart, setProcessingCart] = useState(false);
+  const [coffeePointsBalance, setCoffeePointsBalance] = useState(0);
 
   useEffect(() => {
     async function loadProduct() {
@@ -52,6 +57,15 @@ const ProductDetails = () => {
           toast.error('Product not found');
         } else {
           setProduct(productData);
+          
+          // Check if user came from marketplace with buy=true parameter
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('buy') === 'true' && user && user.uid !== productData.sellerId) {
+            // Auto-trigger buy now flow
+            setTimeout(() => {
+              handleBuyNow();
+            }, 500); // Small delay to ensure component is fully loaded
+          }
         }
       } catch (err) {
         console.error('Error fetching product:', err);
@@ -63,7 +77,7 @@ const ProductDetails = () => {
     }
     
     loadProduct();
-  }, [id]);
+  }, [id, user]);
 
   // Check if product is in wishlist
   useEffect(() => {
@@ -83,17 +97,54 @@ const ProductDetails = () => {
     }
   }, [product, user]);
 
+  // Fetch coffee points balance
+  const fetchCoffeePointsBalance = async () => {
+    if (!user) {
+      setCoffeePointsBalance(0);
+      return;
+    }
+    
+    try {
+      const balance = await getCoffeePointsBalance();
+      setCoffeePointsBalance(balance);
+    } catch (error) {
+      console.error('Error fetching coffee points balance:', error);
+      setCoffeePointsBalance(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchCoffeePointsBalance();
+  }, [user]);
+
   const handleAddToCart = async () => {
     if (!product || !user) {
       toast.error('Please log in to add items to cart');
       return;
     }
     
+    // Prevent users from adding their own products to cart
+    if (user.uid === product.sellerId) {
+      toast.error('You cannot add your own products to cart');
+      return;
+    }
+    
     setProcessingCart(true);
     try {
+      // Send notification to product owner about cart addition
+      await sendProductPurchaseNotification(
+        product.id,
+        product.title,
+        product.sellerId,
+        user.uid,
+        user.displayName || user.email?.split('@')[0] || 'Anonymous',
+        user.photoURL || '',
+        product.listingType || 'sell'
+      );
+      
+      // Add to cart
       await addToCart(product, quantity);
-      toast.success(`Added ${quantity} ${product.title} to cart`);
-      setIsCartOpen(true); // Open cart after adding
+      toast.success('Product added to cart! Seller notified of your interest.');
     } catch (error: any) {
       console.error('Error adding to cart:', error);
       toast.error(error.message || 'Failed to add to cart');
@@ -108,9 +159,28 @@ const ProductDetails = () => {
       return;
     }
     
+    // Prevent users from buying their own products
+    if (user.uid === product.sellerId) {
+      toast.error('You cannot buy your own products');
+      return;
+    }
+    
     setProcessingCart(true);
     try {
+      // Send notification to product owner
+      await sendProductPurchaseNotification(
+        product.id,
+        product.title,
+        product.sellerId,
+        user.uid,
+        user.displayName || user.email?.split('@')[0] || 'Anonymous',
+        user.photoURL || '',
+        product.listingType || 'sell'
+      );
+      
+      // Add to cart and proceed to checkout
       await addToCart(product, quantity);
+      toast.success('Purchase successful! Notification sent to seller.');
       navigate('/dashboard/checkout');
     } catch (error: any) {
       console.error('Error processing purchase:', error);
@@ -136,6 +206,12 @@ const ProductDetails = () => {
   const handleToggleWishlist = async () => {
     if (!product || !user) {
       toast.error('Please log in to use wishlist');
+      return;
+    }
+    
+    // Prevent users from adding their own products to wishlist
+    if (user.uid === product.sellerId) {
+      toast.error('You cannot add your own products to wishlist');
       return;
     }
     
@@ -193,6 +269,14 @@ const ProductDetails = () => {
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Marketplace</span>
         </button>
+        
+        {/* Coffee points display */}
+        {user && (
+          <Link to="/dashboard/coffee-redemption" className="flex items-center gap-2 px-3 py-1 bg-orange-50 border border-orange-200 rounded-full hover:bg-orange-100 transition-colors cursor-pointer">
+            <Coffee className="w-4 h-4 text-orange-600" />
+            <span className="text-sm font-medium text-orange-700">{coffeePointsBalance}</span>
+          </Link>
+        )}
         
         {/* Show delete/edit buttons if user is the product owner */}
         {user && product && user.uid === product.sellerId && (
@@ -317,16 +401,16 @@ const ProductDetails = () => {
                     <Star 
                       key={star} 
                       className={`w-4 h-4 ${
-                        star <= Math.floor(product.rating) 
+                        star <= Math.floor(product.averageRating || 0) 
                           ? 'fill-yellow-400 text-yellow-400' 
-                          : star === Math.ceil(product.rating) && product.rating % 1 !== 0
+                          : star === Math.ceil(product.averageRating || 0) && (product.averageRating || 0) % 1 !== 0
                           ? 'fill-yellow-400/50 text-yellow-400'
                           : 'fill-gray-300 text-gray-300'
                       }`} 
                     />
                   ))}
                   <span className="text-sm text-gray-600 ml-2">
-                    {product.rating} ({product.reviews} reviews)
+                    {product.averageRating || 0} ({product.totalRatings || 0} reviews)
                   </span>
                 </div>
               </div>
@@ -334,10 +418,10 @@ const ProductDetails = () => {
 
             {/* Price */}
             <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-bold text-gray-900">${product.price}</span>
+              <span className="text-3xl font-bold text-gray-900">Rs. {product.price}</span>
               {product.originalPrice && product.originalPrice > product.price && (
                 <>
-                  <span className="text-lg text-gray-500 line-through">${product.originalPrice}</span>
+                  <span className="text-lg text-gray-500 line-through">Rs. {product.originalPrice}</span>
                   <span className="text-sm bg-red-100 text-red-800 px-2 py-1 rounded">
                     {discountPercentage}% off
                   </span>
@@ -407,39 +491,66 @@ const ProductDetails = () => {
               </div>
 
               <div className="flex gap-3">
-                <Button 
-                  onClick={handleAddToCart}
-                  variant="outline" 
-                  className="flex-1 flex items-center justify-center gap-2 py-3"
-                  disabled={product.quantity === 0 || processingCart}
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  Add to Cart
-                </Button>
-                <Button 
-                  onClick={handleBuyNow}
-                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700"
-                  disabled={product.quantity === 0 || processingCart}
-                >
-                  Buy Now
-                </Button>
+                {/* Only show Add to Cart and Buy Now for products not owned by current user */}
+                {user && user.uid !== product.sellerId ? (
+                  <>
+                    <Button 
+                      onClick={handleAddToCart}
+                      variant="outline" 
+                      className="flex-1 flex items-center justify-center gap-2 py-3"
+                      disabled={product.quantity === 0 || processingCart}
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      Add to Cart
+                    </Button>
+                    <Button 
+                      onClick={handleBuyNow}
+                      className="flex-1 py-3 bg-blue-600 hover:bg-blue-700"
+                      disabled={product.quantity === 0 || processingCart}
+                    >
+                      Buy Now
+                    </Button>
+                  </>
+                ) : (
+                  /* Show message for own products */
+                  <div className="flex-1 text-center py-3 px-4 bg-gray-50 rounded-lg border">
+                    <Package className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm font-medium text-gray-600">This is your product</p>
+                    <p className="text-xs text-gray-500">You cannot buy your own items</p>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="flex items-center gap-2"
-                  onClick={handleToggleWishlist}
-                  disabled={processingWishlist}
-                >
-                  {processingWishlist ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Heart className={`w-4 h-4 ${isInWish ? 'fill-red-500 text-red-500' : ''}`} />
-                  )}
-                  {isInWish ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                </Button>
+                {/* Coffee icon - only show for products not owned by current user */}
+                {user && user.uid !== product.sellerId && (
+                  <CoffeeIcon
+                    toUserId={product.sellerId}
+                    toUserName={product.sellerName}
+                    productId={product.id}
+                    productTitle={product.title}
+                    size="md"
+                    onPointsSent={fetchCoffeePointsBalance}
+                  />
+                )}
+                
+                {/* Only show wishlist button for products not owned by current user */}
+                {user && user.uid !== product.sellerId && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="flex items-center gap-2"
+                    onClick={handleToggleWishlist}
+                    disabled={processingWishlist}
+                  >
+                    {processingWishlist ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Heart className={`w-4 h-4 ${isInWish ? 'fill-red-500 text-red-500' : ''}`} />
+                    )}
+                    {isInWish ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                  </Button>
+                )}
                 <Button variant="ghost" size="sm" className="flex items-center gap-2">
                   <Share2 className="w-4 h-4" />
                   Share
@@ -520,6 +631,11 @@ const ProductDetails = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Product Comments */}
+        <div className="mt-12">
+          <ProductComments productId={product.id} productTitle={product.title} />
         </div>
       </div>
       

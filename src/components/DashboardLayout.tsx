@@ -16,10 +16,13 @@ const DashboardLayout = () => {
     <div className="min-h-screen flex w-full bg-gray-50 overflow-x-hidden">
       <AppSidebar />
       
-      {/* Main content with left margin to accommodate fixed sidebar */}
+      {/* Main content with responsive left margin for YouTube-style sidebar */}
       <div 
-        className={`flex-1 flex flex-col ${isCollapsed ? 'ml-[110px]' : 'ml-[300px]'} transition-[margin] duration-200`}
-        style={{ width: 'calc(100% - ' + (isCollapsed ? '110px' : '300px') + ')' }}
+        className={`flex-1 flex flex-col transition-all duration-300 ease-out ${
+          isCollapsed 
+            ? 'ml-0 lg:ml-[80px]' 
+            : 'ml-0 lg:ml-[280px]'
+        }`}
       >
         {/* Only show the header when NOT on marketplace page */}
         {!isMarketplace && <DashboardHeader />}

@@ -23,12 +23,14 @@ import {
   Image as ImageIcon,
   Trash2,
   MoreVertical,
-  UserCheck
+  UserCheck,
+  Edit,
+  Flag
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuthContext } from '@/lib/AuthProvider';
-import { Post as PostType, getPosts, createPost, toggleLike, addComment, deletePost } from '@/lib/posts';
-import { getUserProfile, toggleFollowUser, checkIfFollowing, UserProfile } from '@/lib/users';
+import { Post as PostType, getPosts, createPost, toggleLike, addComment, deletePost, subscribeToRecentPosts, debugGetAllPosts, manuallyFetchPosts, fixNegativeLikeCounts, updatePost, reportPost } from '@/lib/posts';
+import { getUserProfile, toggleFollowUser, checkIfFollowing, UserProfile, subscribeToUserProfile, getRecommendationUsers } from '@/lib/users';
 import { initializeAllUserProfiles } from '@/lib/initializeUserProfiles';
 import { formatDistanceToNow } from 'date-fns';
 import { PostComments } from '@/components/PostComments';
@@ -51,6 +53,30 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from 'sonner';
+import { 
+  collection, 
+  addDoc, 
+  getDocs, 
+  doc, 
+  getDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  where, 
+  orderBy, 
+  serverTimestamp,
+  increment, 
+  arrayUnion, 
+  arrayRemove,
+  Timestamp,
+  DocumentData,
+  writeBatch,
+  limit as fsLimit,
+  startAfter,
+  onSnapshot,
+  QueryDocumentSnapshot
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface User {
   id: string;
@@ -102,12 +128,25 @@ const Feed = () => {
   const [newPost, setNewPost] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [followStatus, setFollowStatus] = useState<Record<string, boolean>>({});
   const [authorProfiles, setAuthorProfiles] = useState<Record<string, UserProfile>>({});
+  const [lastDocRef, setLastDocRef] = useState<any>(null);
+  const authorUnsubsRef = useRef<Map<string, () => void>>(new Map());
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+  const [showCommentInputs, setShowCommentInputs] = useState<Record<string, boolean>>({});
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editedPostText, setEditedPostText] = useState<string>('');
+  const [editedPostImageFile, setEditedPostImageFile] = useState<File | null>(null);
+  const [editedPostImagePreviewUrl, setEditedPostImagePreviewUrl] = useState<string | null>(null);
+  const [isEditingImageCleared, setIsEditingImageCleared] = useState<boolean>(false);
+  const [reportPostId, setReportPostId] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState<string>('');
+  const [showReportDialog, setShowReportDialog] = useState<boolean>(false);
+  const [recommendationUsers, setRecommendationUsers] = useState<UserProfile[]>([]);
 
   useEffect(() => {
     // Initialize all user profiles when component mounts
@@ -116,11 +155,109 @@ const Feed = () => {
       console.error("Error initializing user profiles:", error)
     );
     
-    loadPosts();
+    console.log('Feed component: Setting up real-time posts subscription');
+    
+    // Real-time posts subscription
+    const unsubscribe = subscribeToRecentPosts((livePosts, lastDoc) => {
+      console.log('Feed component: Received posts update with', livePosts.length, 'posts');
+      console.log('Posts data:', livePosts);
+      
+      setPosts(livePosts);
+      setLastDocRef(lastDoc || null);
+      
+      // If no posts received from subscription, try manual fetch as fallback
+      if (livePosts.length === 0) {
+        console.log('Feed component: No posts from subscription, trying manual fetch...');
+        manuallyFetchPosts().then(manualPosts => {
+          console.log('Feed component: Manual fetch returned', manualPosts.length, 'posts');
+          if (manualPosts.length > 0) {
+            setPosts(manualPosts);
+            toast({
+              title: "Posts Loaded",
+              description: `Loaded ${manualPosts.length} posts manually`,
+            });
+          }
+        }).catch(error => {
+          console.error('Feed component: Manual fetch fallback failed:', error);
+        });
+      }
+      
+      // Load author profiles for the first 10 posts eagerly
+      const uniqueAuthorIds = [...new Set(livePosts.slice(0, 10).map(post => post.authorId))];
+      console.log('Feed component: Loading profiles for authors:', uniqueAuthorIds);
+      
+      Promise.all(uniqueAuthorIds.map(async (authorId) => {
+        try {
+          const profile = await getUserProfile(authorId);
+          return profile ? { authorId, profile } : null;
+        } catch (e) {
+          console.error('Error loading profile for author:', authorId, e);
+          return null;
+        }
+      })).then(results => {
+        const profilesMap: Record<string, UserProfile> = {};
+        results.forEach(r => { if (r) profilesMap[r.authorId] = r.profile; });
+        console.log('Feed component: Loaded author profiles:', profilesMap);
+        setAuthorProfiles(prev => ({ ...profilesMap, ...prev }));
+      });
+    }, 10);
+
     if (user) {
+      console.log('Feed component: User authenticated, loading profile');
       loadUserProfile();
+    } else {
+      console.log('Feed component: No user authenticated');
     }
+
+    return () => {
+      console.log('Feed component: Cleaning up subscription');
+      unsubscribe();
+    };
   }, [user]);
+
+  // Subscribe to author profiles in real-time when posts change
+  useEffect(() => {
+    const currentSubs = authorUnsubsRef.current;
+    const authorIds = new Set(posts.map(p => p.authorId));
+
+    // Unsubscribe authors no longer present
+    for (const [authorId, unsub] of currentSubs.entries()) {
+      if (!authorIds.has(authorId)) {
+        unsub();
+        currentSubs.delete(authorId);
+      }
+    }
+
+    // Subscribe to new authors
+    authorIds.forEach(authorId => {
+      if (!currentSubs.has(authorId)) {
+        const unsub = subscribeToUserProfile(authorId, (profile) => {
+          if (!profile) return;
+          setAuthorProfiles(prev => ({ ...prev, [authorId]: profile }));
+          // Also refresh follow status cache for current viewer
+          if (user && authorId !== user.uid) {
+            checkFollowStatus(authorId).catch(() => {});
+          }
+        });
+        currentSubs.set(authorId, unsub);
+      }
+    });
+
+    return () => {
+      // Do not clear here to preserve subscriptions across minor post updates
+      // Cleanup happens on component unmount below
+    };
+  }, [posts, user]);
+
+  // Cleanup all subscriptions on unmount
+  useEffect(() => {
+    return () => {
+      for (const unsub of authorUnsubsRef.current.values()) {
+        try { unsub(); } catch {}
+      }
+      authorUnsubsRef.current.clear();
+    };
+  }, []);
 
   const loadUserProfile = async () => {
     if (!user) return;
@@ -139,7 +276,7 @@ const Feed = () => {
   const loadPosts = async () => {
     try {
       setIsLoading(true);
-      const postsData = await getPosts();
+      const postsData = await getPosts(25);
       setPosts(postsData);
       
       // Load author profiles for each post
@@ -190,15 +327,23 @@ const Feed = () => {
     }
     
     try {
+      // Find the current post
+      const currentPost = posts.find(post => post.id === postId);
+      if (!currentPost) return;
+      
+      const isCurrentlyLiked = currentPost.likedBy.includes(user.uid);
+      const currentLikes = Math.max(0, currentPost.likes || 0); // Ensure likes is never negative
+      
       // Optimistic update
       setPosts(prevPosts =>
         prevPosts.map(post =>
           post.id === postId
             ? {
                 ...post,
-                isLiked: !post.likedBy.includes(user.uid),
-                likes: post.likedBy.includes(user.uid) ? post.likes - 1 : post.likes + 1,
-                likedBy: post.likedBy.includes(user.uid) 
+                likes: isCurrentlyLiked 
+                  ? Math.max(0, currentLikes - 1) // Ensure likes never goes below 0
+                  : currentLikes + 1,
+                likedBy: isCurrentlyLiked 
                   ? post.likedBy.filter(id => id !== user.uid)
                   : [...post.likedBy, user.uid]
               }
@@ -217,8 +362,129 @@ const Feed = () => {
       });
       
       // Reload posts to revert if there was an error
-      const postsData = await getPosts();
+      const postsData = await getPosts(25);
       setPosts(postsData);
+    }
+  };
+
+  const handleComment = async (postId: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to comment on posts",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const commentText = commentInputs[postId]?.trim();
+    if (!commentText) {
+      toast({
+        title: "Comment cannot be empty",
+        description: "Please enter a comment before posting",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Add comment to Firestore
+      await addComment(postId, commentText);
+      
+      // Update local state
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === postId
+            ? { ...post, comments: post.comments + 1 }
+            : post
+        )
+      );
+      
+      // Clear comment input and hide input field
+      setCommentInputs(prev => ({ ...prev, [postId]: '' }));
+      setShowCommentInputs(prev => ({ ...prev, [postId]: false }));
+      
+      toast({
+        title: "Comment added!",
+        description: "Your comment has been posted successfully.",
+      });
+    } catch (error: any) {
+      console.error("Error adding comment:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add comment",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShare = async (post: PostType) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to share posts",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Create shareable content
+      const shareText = `${post.authorName}: ${post.content}`;
+      const shareUrl = `${window.location.origin}/post/${post.id}`;
+      
+      // Try to use native sharing if available
+      if (navigator.share) {
+        await navigator.share({
+          title: `Post by ${post.authorName}`,
+          text: shareText,
+          url: shareUrl,
+        });
+      } else {
+        // Fallback to clipboard copy
+        await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
+        toast({
+          title: "Link copied!",
+          description: "Post link has been copied to your clipboard.",
+        });
+      }
+      
+      // Update share count in Firestore
+      await updateDoc(doc(db, 'posts', post.id), {
+        shares: increment(1)
+      });
+      
+      // Update local state
+      setPosts(prevPosts =>
+        prevPosts.map(p =>
+          p.id === post.id
+            ? { ...p, shares: p.shares + 1 }
+            : p
+        )
+      );
+      
+    } catch (error: any) {
+      console.error("Error sharing post:", error);
+      toast({
+        title: "Error",
+        description: "Failed to share post",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleCommentInput = (postId: string) => {
+    setShowCommentInputs(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+    
+    // Focus on comment input when showing
+    if (!showCommentInputs[postId]) {
+      setTimeout(() => {
+        const input = document.getElementById(`comment-input-${postId}`);
+        if (input) input.focus();
+      }, 100);
     }
   };
 
@@ -384,10 +650,7 @@ const Feed = () => {
       const postId = await createPost(postData, selectedImage || undefined);
       console.log('Post created successfully with ID:', postId);
       
-      // Refetch posts to include the new one
-      const postsData = await getPosts();
-      setPosts(postsData);
-      
+      // Clear input fields
       setNewPost('');
       removeSelectedImage();
       toast({
@@ -434,29 +697,261 @@ const Feed = () => {
   };
 
   const handleDeletePost = async () => {
-    if (!user || !postToDelete) return;
+    if (!postToDelete) return;
 
     try {
       await deletePost(postToDelete);
-      
-      // Update the posts state to remove the deleted post
       setPosts(posts.filter(post => post.id !== postToDelete));
-      
       toast({
         title: "Post deleted",
         description: "Your post has been deleted successfully",
       });
     } catch (error: any) {
-      console.error("Error deleting post:", error);
+      console.error('Error deleting post:', error);
+      toast({
+        title: "Error",
+        description: error.message || 'Failed to delete post',
+        variant: "destructive",
+      });
+    } finally {
+      setPostToDelete(null);
+      setIsAlertOpen(false);
+    }
+  };
+
+  // Debug function to check all posts in database
+  const handleDebugPosts = async () => {
+    try {
+      console.log('Feed: Testing debug function...');
+      const allPosts = await debugGetAllPosts();
+      console.log('Feed: Debug function returned', allPosts.length, 'posts');
+      toast({
+        title: "Debug Info",
+        description: `Found ${allPosts.length} posts in database`,
+      });
+    } catch (error) {
+      console.error('Feed: Debug function error:', error);
+      toast({
+        title: "Debug Error",
+        description: "Debug function failed",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Test manual fetching of posts
+  const handleManualFetch = async () => {
+    try {
+      console.log('Feed: Testing manual fetch...');
+      const manualPosts = await manuallyFetchPosts();
+      console.log('Feed: Manual fetch returned', manualPosts.length, 'posts');
+      
+      // Update the posts state with manually fetched posts
+      setPosts(manualPosts);
+      
+      toast({
+        title: "Manual Fetch Success",
+        description: `Fetched ${manualPosts.length} posts manually`,
+      });
+    } catch (error) {
+      console.error('Feed: Manual fetch error:', error);
+      toast({
+        title: "Manual Fetch Error",
+        description: "Manual fetch failed",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleManualFetchPosts = async () => {
+    try {
+      const postsData = await manuallyFetchPosts(25);
+      setPosts(postsData);
+      toast({
+        title: "Posts loaded manually",
+        description: `Loaded ${postsData.length} posts`,
+      });
+    } catch (error: any) {
+      console.error("Error manually fetching posts:", error);
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive",
       });
-    } finally {
-      // Reset the post to delete
-      setPostToDelete(null);
-      setIsAlertOpen(false);
+    }
+  };
+
+  const handleFixNegativeLikes = async () => {
+    try {
+      const fixedCount = await fixNegativeLikeCounts();
+      if (fixedCount > 0) {
+        toast({
+          title: "Fixed negative likes!",
+          description: `Fixed ${fixedCount} posts with negative like counts`,
+        });
+        // Reload posts to show corrected counts
+        await loadPosts();
+      } else {
+        toast({
+          title: "No issues found",
+          description: "All posts have valid like counts",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error fixing negative likes:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to fix negative likes",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Edit post functionality
+  const handleEditPost = (post: PostType) => {
+    setEditingPostId(post.id);
+    setEditedPostText(post.content);
+    setEditedPostImageFile(null);
+    setEditedPostImagePreviewUrl(null);
+    setIsEditingImageCleared(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingPostId || !editedPostText.trim()) {
+      toast({
+        title: "Cannot save empty post",
+        description: "Please add some text to your post",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await updatePost(
+        editingPostId,
+        editedPostText.trim(),
+        editedPostImageFile,
+        isEditingImageCleared
+      );
+
+      // Update local state
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === editingPostId
+            ? {
+                ...post,
+                content: editedPostText.trim(),
+                imageUrl: isEditingImageCleared ? null : 
+                  editedPostImageFile ? editedPostImagePreviewUrl : post.imageUrl
+              }
+            : post
+        )
+      );
+
+      // Clear editing state
+      setEditingPostId(null);
+      setEditedPostText('');
+      setEditedPostImageFile(null);
+      setEditedPostImagePreviewUrl(null);
+      setIsEditingImageCleared(false);
+
+      toast({
+        title: "Post updated!",
+        description: "Your post has been updated successfully.",
+      });
+    } catch (error: any) {
+      console.error("Error updating post:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update post",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPostId(null);
+    setEditedPostText('');
+    setEditedPostImageFile(null);
+    setEditedPostImagePreviewUrl(null);
+    setIsEditingImageCleared(false);
+  };
+
+  const handleEditedImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Check file size - stricter limit for base64 storage (max 1MB)
+      const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "File too large",
+          description: "Image must be smaller than 1MB when storing as base64",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Only image files are allowed",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setEditedPostImageFile(file);
+      setEditedPostImagePreviewUrl(URL.createObjectURL(file));
+      setIsEditingImageCleared(false);
+    }
+  };
+
+  const handleClearEditedImage = () => {
+    setEditedPostImageFile(null);
+    if (editedPostImagePreviewUrl) {
+      URL.revokeObjectURL(editedPostImagePreviewUrl);
+      setEditedPostImagePreviewUrl(null);
+    }
+    setIsEditingImageCleared(true);
+  };
+
+  // Report post functionality
+  const handleReportPost = (postId: string) => {
+    setReportPostId(postId);
+    setReportReason('');
+    setShowReportDialog(true);
+  };
+
+  const handleSubmitReport = async () => {
+    if (!reportPostId || !reportReason.trim()) {
+      toast({
+        title: "Report reason required",
+        description: "Please provide a reason for reporting this post",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await reportPost(reportPostId, reportReason.trim());
+      
+      setShowReportDialog(false);
+      setReportPostId(null);
+      setReportReason('');
+      
+      toast({
+        title: "Post reported!",
+        description: "Thank you for your report. We'll review it shortly.",
+      });
+    } catch (error: any) {
+      console.error("Error reporting post:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to report post",
+        variant: "destructive",
+      });
     }
   };
 
@@ -465,6 +960,35 @@ const Feed = () => {
     setPostToDelete(postId);
     setIsAlertOpen(true);
   };
+
+  const handleLoadMore = async () => {
+    try {
+      if (!lastDocRef) return;
+      const { getMorePosts } = await import('@/lib/posts');
+      const result = await getMorePosts(lastDocRef, 25);
+      setPosts(prev => [...prev, ...result.posts]);
+      setLastDocRef(result.lastDoc || null);
+    } catch (e) {
+      console.error('Error loading more posts', e);
+    }
+  };
+
+  // Load recommendation users
+  const loadRecommendationUsers = async () => {
+    if (!user) return;
+    
+    try {
+      const users = await getRecommendationUsers(user.uid, 8);
+      setRecommendationUsers(users);
+    } catch (error) {
+      console.error("Error loading recommendation users:", error);
+    }
+  };
+
+  // Load recommendation users when component mounts
+  useEffect(() => {
+    loadRecommendationUsers();
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -482,6 +1006,33 @@ const Feed = () => {
                 className="pl-10 rounded-xl border-gray-200"
               />
             </div>
+          </div>
+
+          {/* Debug Button */}
+          <div className="mb-8">
+            <Button 
+              onClick={debugGetAllPosts}
+              variant="outline"
+              className="w-full rounded-xl border-gray-200 text-sm"
+            >
+              Debug: Check Posts
+            </Button>
+
+            <Button 
+              onClick={handleManualFetchPosts}
+              variant="outline"
+              className="w-full rounded-xl border-gray-200 text-sm"
+            >
+              Manual Fetch Posts (25)
+            </Button>
+
+            <Button 
+              onClick={handleFixNegativeLikes}
+              variant="outline"
+              className="w-full rounded-xl border-gray-200 text-sm"
+            >
+              Fix Negative Likes
+            </Button>
           </div>
 
           {/* Favourites */}
@@ -669,7 +1220,7 @@ const Feed = () => {
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        {/* Show dropdown menu with delete option for post owner */}
+                        {/* Show dropdown menu with edit/delete options for post owner */}
                         {user && post.authorId === user.uid ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -683,6 +1234,14 @@ const Feed = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-40">
                               <DropdownMenuItem 
+                                className="cursor-pointer"
+                                onClick={() => handleEditPost(post)}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
                                 className="text-red-600 cursor-pointer"
                                 onClick={() => openDeleteDialog(post.id)}
                               >
@@ -692,14 +1251,26 @@ const Feed = () => {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         ) : (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="rounded-full hover:bg-gray-100"
-                            onClick={() => {}}
-                          >
-                            <MoreHorizontal className="h-5 w-5 text-gray-500" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="rounded-full hover:bg-gray-100"
+                              >
+                                <MoreHorizontal className="h-5 w-5 text-gray-500" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40">
+                              <DropdownMenuItem 
+                                className="text-orange-600 cursor-pointer"
+                                onClick={() => handleReportPost(post.id)}
+                              >
+                                <Flag className="h-4 w-4 mr-2" />
+                                Report
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
                       </div>
                     </div>
@@ -707,12 +1278,98 @@ const Feed = () => {
                   <CardContent className="p-6 pt-0">
                     <p className="text-gray-800 mb-4">{post.content}</p>
                     
+                    {/* Edit Post Interface */}
+                    {editingPostId === post.id && (
+                      <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="space-y-4">
+                          <Textarea
+                            placeholder="Edit your post..."
+                            value={editedPostText}
+                            onChange={(e) => setEditedPostText(e.target.value)}
+                            className="min-h-[100px] resize-none"
+                          />
+                          
+                          {/* Image handling for edit */}
+                          <div className="space-y-3">
+                            {post.imageUrl && !isEditingImageCleared && (
+                              <div className="relative">
+                                <img 
+                                  src={post.imageUrl} 
+                                  alt="Current post image" 
+                                  className="rounded-lg w-full object-contain max-h-[300px]"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={handleClearEditedImage}
+                                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+                            )}
+                            
+                            {editedPostImagePreviewUrl && (
+                              <div className="relative">
+                                <img 
+                                  src={editedPostImagePreviewUrl} 
+                                  alt="New image preview" 
+                                  className="rounded-lg w-full object-contain max-h-[300px]"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={handleClearEditedImage}
+                                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+                            )}
+                            
+                            <div className="flex space-x-2">
+                              <input
+                                type="file"
+                                onChange={handleEditedImageSelect}
+                                accept="image/*"
+                                className="hidden"
+                                id={`edit-image-${post.id}`}
+                              />
+                              <label
+                                htmlFor={`edit-image-${post.id}`}
+                                className="cursor-pointer inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                              >
+                                <ImageIcon className="h-4 w-4 mr-2" />
+                                {post.imageUrl && !isEditingImageCleared ? 'Replace Image' : 'Add Image'}
+                              </label>
+                            </div>
+                          </div>
+                          
+                          <div className="flex space-x-2">
+                            <Button
+                              onClick={handleSaveEdit}
+                              disabled={!editedPostText.trim()}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-4"
+                            >
+                              Save Changes
+                            </Button>
+                            <Button
+                              onClick={handleCancelEdit}
+                              variant="outline"
+                              className="px-4"
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
                     {/* Display post image if available */}
-                    {post.imageUrl && (
+                    {post.imageUrl && editingPostId !== post.id && (
                       <div className="mb-4">
                         <img 
                           src={post.imageUrl} 
                           alt="Post attachment" 
+                          loading="lazy"
                           className="rounded-lg w-full object-contain max-h-[600px]"
                           style={{ marginLeft: 'auto', marginRight: 'auto' }}
                         />
@@ -732,21 +1389,83 @@ const Feed = () => {
                         <span className="text-sm text-gray-500">{post.likes}</span>
                       </div>
                       <div className="flex space-x-2 items-center">
-                        <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-blue-500 hover:bg-blue-50">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="rounded-full text-gray-500 hover:text-blue-500 hover:bg-blue-50"
+                          onClick={() => toggleCommentInput(post.id)}
+                        >
                           <MessageCircle className="h-5 w-5" />
                         </Button>
                         <span className="text-sm text-gray-500">{post.comments}</span>
                       </div>
                       <div className="flex space-x-2 items-center">
-                        <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-green-500 hover:bg-green-50">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="rounded-full text-gray-500 hover:text-green-500 hover:bg-green-50"
+                          onClick={() => handleShare(post)}
+                        >
                           <Share2 className="h-5 w-5" />
                         </Button>
                         <span className="text-sm text-gray-500">{post.shares}</span>
                       </div>
                     </div>
+
+                    {/* Comment Input Section */}
+                    {showCommentInputs[post.id] && (
+                      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <div className="flex space-x-2">
+                          <Textarea
+                            id={`comment-input-${post.id}`}
+                            placeholder="Write a comment..."
+                            value={commentInputs[post.id] || ''}
+                            onChange={(e) => setCommentInputs(prev => ({
+                              ...prev,
+                              [post.id]: e.target.value
+                            }))}
+                            className="flex-1 min-h-[60px] resize-none"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleComment(post.id);
+                              }
+                            }}
+                          />
+                          <Button
+                            onClick={() => handleComment(post.id)}
+                            disabled={!commentInputs[post.id]?.trim()}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4"
+                          >
+                            Post
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Show existing comments */}
+                    {post.comments > 0 && (
+                      <div className="mt-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleCommentInput(post.id)}
+                          className="text-blue-600 hover:text-blue-700 p-0 h-auto"
+                        >
+                          View all {post.comments} comments
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          )}
+          {posts.length > 0 && lastDocRef && (
+            <div className="flex justify-center py-6">
+              <Button onClick={handleLoadMore} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6">
+                Load more
+              </Button>
             </div>
           )}
         </div>
@@ -788,28 +1507,34 @@ const Feed = () => {
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">RECOMMENDATION</h3>
             <div className="space-y-4">
-              {mockRecommendations.map((user) => (
-                <div key={user.id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={user.avatar} />
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium text-gray-900 text-sm">{user.name}</div>
-                      <div className="text-xs text-gray-500">12 minutes</div>
+              {recommendationUsers.length > 0 ? (
+                recommendationUsers.map((user) => (
+                  <div key={user.id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={user.photoURL} />
+                        <AvatarFallback>{user.displayName.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-gray-900 text-sm">{user.displayName}</div>
+                        <div className="text-xs text-gray-500">{user.handle}</div>
+                      </div>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleFollow(user.id)}
+                      className="text-xs px-3 py-1"
+                    >
+                      {followStatus[user.id] ? 'Following' : 'Follow'}
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleFollow(user.id)}
-                    className="rounded-full px-4 text-xs"
-                  >
-                    Follow
-                  </Button>
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-sm text-gray-500">Loading recommendations...</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -848,6 +1573,42 @@ const Feed = () => {
               onClick={handleDeletePost}
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Report Dialog */}
+      <AlertDialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Report Post</AlertDialogTitle>
+            <AlertDialogDescription>
+              Please provide a reason for reporting this post. This helps us take appropriate action.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="Enter reason for reporting (e.g., inappropriate content, spam, harassment)..."
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              className="min-h-[100px] resize-none"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowReportDialog(false);
+              setReportPostId(null);
+              setReportReason('');
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleSubmitReport}
+              disabled={!reportReason.trim()}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Submit Report
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -247,7 +247,7 @@ const OurServices = () => {
         <div className="bg-gradient-to-r from-blue-500 to-blue-700 rounded-3xl p-12 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to transform your farm?</h2>
           <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-8">
-            Join thousands of Nepali farmers who are increasing their yields and profits with Krishak AI
+            Join thousands of Nepali farmers who are increasing their yields and profits with GreenLoop
           </p>
           <Button size="lg" variant="secondary" className="px-8 py-6 text-lg font-bold">
             Get Started Today

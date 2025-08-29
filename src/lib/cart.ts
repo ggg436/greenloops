@@ -62,6 +62,11 @@ export const addToCart = async (product: Product, quantity: number): Promise<str
     throw new Error("User not authenticated");
   }
 
+  // Prevent users from adding their own products to cart
+  if (user.uid === product.sellerId) {
+    throw new Error("You cannot add your own products to cart");
+  }
+
   try {
     // Check if the item already exists in the cart
     const q = query(
