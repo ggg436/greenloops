@@ -510,7 +510,7 @@ export default function CoffeeRedemption() {
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
-                              className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                              className="bg-green-500 h-2 rounded-full transition-all duration-300"
                               style={{ width: `${Math.min((coffeePoints / reward.pointsCost) * 100, 100)}%` }}
                             ></div>
                           </div>
@@ -520,7 +520,7 @@ export default function CoffeeRedemption() {
                         {coffeePoints >= reward.pointsCost ? (
                           <Button 
                             onClick={() => handleRedeem(reward)}
-                            className="w-full bg-orange-600 hover:bg-orange-700"
+                            className="w-full bg-green-600 hover:bg-green-700"
                             disabled={isRedeeming}
                           >
                             {isRedeeming ? (
@@ -542,7 +542,7 @@ export default function CoffeeRedemption() {
                             </p>
                             <Button 
                               variant="outline" 
-                              className="w-full text-orange-600 border-orange-300"
+                              className="w-full text-green-600 border-green-300"
                               disabled
                             >
                               Insufficient Points
@@ -564,7 +564,7 @@ export default function CoffeeRedemption() {
                   <p className="text-gray-600 mb-6">
                     No rewards are currently available for redemption.
                   </p>
-                  <Button onClick={() => setActiveTab('add')} className="bg-orange-600 hover:bg-orange-700">
+                  <Button onClick={() => setActiveTab('add')} className="bg-green-600 hover:bg-green-700">
                     <Plus className="mr-2 h-4 w-4" />
                     Create Your First Reward
                   </Button>
@@ -583,7 +583,7 @@ export default function CoffeeRedemption() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button onClick={() => setShowAddForm(true)} className="bg-orange-600 hover:bg-orange-700">
+                <Button onClick={() => setShowAddForm(true)} className="bg-green-600 hover:bg-green-700">
                   <Plus className="mr-2 h-4 w-4" />
                   Create Reward
                 </Button>
@@ -793,7 +793,7 @@ function RewardForm({ reward, onSubmit, onCancel, selectedImage, imagePreview, i
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting} className="bg-orange-600 hover:bg-orange-700">
+        <Button type="submit" disabled={isSubmitting} className="bg-green-600 hover:bg-green-700">
           {isSubmitting ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

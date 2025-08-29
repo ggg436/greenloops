@@ -180,7 +180,7 @@ export const CoffeeIcon: React.FC<CoffeeIconProps> = ({
           <Button
             onClick={handleSendCoffee}
             disabled={isLoading || points <= 0 || points > userBalance}
-            className="bg-orange-600 hover:bg-orange-700"
+            className="bg-green-600 hover:bg-green-700"
           >
             {isLoading ? 'Sending...' : `Send ${points} Coffee Points`}
           </Button>
