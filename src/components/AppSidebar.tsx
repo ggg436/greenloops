@@ -90,6 +90,12 @@ export const AppSidebar = () => {
         showFor: ['farmer', 'user']
       },
       { 
+        title: 'AI Video Rec', 
+        url: '/dashboard/ai-video-rec',
+        icon: LineChart,
+        showFor: ['farmer', 'user']
+      },
+      { 
         title: t('common.weather'), 
         url: '/dashboard/weather',
         icon: CloudSun,

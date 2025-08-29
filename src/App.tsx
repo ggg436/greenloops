@@ -33,6 +33,7 @@ import Data from './pages/Data';
 import Notifications from './pages/Notifications';
 import MyChats from './pages/MyChats';
 import CoffeeRedemption from './pages/CoffeeRedemption';
+import AiVideoRec from './pages/AiVideoRec';
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ const App = () => (
               <Route path="marketplace/:id" element={<ProductDetails />} />
               <Route path="my-chats" element={<MyChats />} />
               <Route path="coffee-redemption" element={<CoffeeRedemption />} />
+              <Route path="ai-video-rec" element={<AiVideoRec />} />
               <Route path="notifications" element={<Notifications />} />
               <Route path="checkout" element={<Checkout />} />
               <Route path="weather" element={<Weather />} />
