@@ -992,78 +992,9 @@ const Feed = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex w-full">
-        {/* Left Sidebar */}
-        <div className="w-64 p-6 bg-white border-r border-gray-200 h-screen sticky top-0 overflow-y-auto">
-          {/* Search */}
-          <div className="mb-8">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search post and comments"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 rounded-xl border-gray-200"
-              />
-            </div>
-          </div>
-
-          {/* Debug buttons removed for production */}
-
-          {/* Favourites */}
-          <div className="mb-8">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">FAVOURITES</h3>
-            <div className="space-y-3">
-              {mockFavorites.map((user) => (
-                <div key={user.id} className="flex items-center space-x-3">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={user.avatar} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium text-gray-700">{user.name}</span>
-                  <Heart className="w-4 h-4 text-blue-500 ml-auto" />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Community */}
-          <div className="mb-8">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">COMMUNITY</h3>
-            <div className="space-y-3">
-              {mockCommunity.map((user) => (
-                <div key={user.id} className="flex items-center space-x-3">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={user.avatar} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium text-gray-700">{user.name}</span>
-                  <Heart className="w-4 h-4 text-blue-500 ml-auto" />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Following */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">FOLLOWING</h3>
-            <div className="space-y-3">
-              {mockFollowing.map((user) => (
-                <div key={user.id} className="flex items-center space-x-3">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={user.avatar} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium text-gray-700">{user.name}</span>
-                  <Heart className="w-4 h-4 text-blue-500 ml-auto" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Main Feed */}
-        <div className="flex-1 p-6">
+      <div className="w-full">
+        {/* Main Feed (full width) */}
+        <div className="w-full p-6">
           {/* Create Post */}
           <Card className="mb-6 rounded-3xl border-gray-200">
             <CardContent className="p-6">
