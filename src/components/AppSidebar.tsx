@@ -84,7 +84,7 @@ export const AppSidebar = () => {
         showFor: ['farmer', 'user']
       },
       { 
-        title: t('common.coffeeRedemption'), 
+        title: 'Leafcoin Redemption', 
         url: '/dashboard/coffee-redemption',
         icon: Coffee,
         showFor: ['farmer', 'user']
