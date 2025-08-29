@@ -206,7 +206,7 @@ export const AppSidebar = () => {
                       isCollapsed ? 'justify-center w-full px-0 mx-1' : 'gap-4 px-4'
                     } py-3 rounded-xl cursor-pointer transition-all duration-200 ${
                       isActive(item.url)
-                        ? 'bg-blue-600 text-white shadow-md'
+                        ? 'bg-green-600 text-white shadow-md'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                     }`}
                     title={isCollapsed ? item.title : ''}
@@ -226,16 +226,16 @@ export const AppSidebar = () => {
 
             {/* Pro Version Card */}
             <div className={`p-4 ${isCollapsed ? 'hidden' : 'block'}`}>
-              <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-4 text-white">
+              <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-4 text-white">
                 <div className="flex items-center gap-3 mb-3">
                   <Star className="w-5 h-5 text-yellow-300" />
                   <span className="text-sm font-semibold">GreenLoop Pro</span>
                 </div>
-                <p className="text-xs text-blue-100 mb-3">
+                <p className="text-xs text-green-100 mb-3">
                   Get access to all features and benefits
                 </p>
                 <Button 
-                  className="w-full bg-white text-blue-600 hover:bg-blue-50 rounded-lg text-sm py-2"
+                  className="w-full bg-white text-green-600 hover:bg-green-50 rounded-lg text-sm py-2"
                   onClick={handleGetPro}
                 >
                   Get Pro
