@@ -415,20 +415,6 @@ const Marketplace = () => {
               >
                 Add Product
               </button>
-              
-              <button 
-                onClick={handleDebugProducts}
-                className="text-sm bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors"
-              >
-                Debug Products
-              </button>
-              
-              <button 
-                onClick={handleManualFetch}
-                className="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
-              >
-                Manual Fetch
-              </button>
             </div>
           </div>
         </div>
